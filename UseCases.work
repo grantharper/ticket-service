@@ -1,0 +1,14 @@
+Happy Path 1
+>>A@email.com 
+Welcome, how many seats?
+>>2
+The best available 2 seats have been held until hh:mm:ss
+Would you like to reserve them (y/n)?
+>>y
+Seats have been reserved: XXXXX (confirmation code)
+
+et the user know that they can enter "q" at any time to quit
+		iv. ask for number of seats to reserved
+		v. list the seats the are held
+		vi. ask for confirmation of reservation
+		vii. display confirmation ID

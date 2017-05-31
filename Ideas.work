@@ -1,0 +1,100 @@
+Startup Parameters to be set in a property file
+	1. Venue Dimensions (rows and seats per row)
+	2. Customer Hold Time (seconds)
+
+Application
+	a. instance variables
+		i. String currentCustomerEmail
+		ii. int seatHoldId
+		iii. Map<Integer, SeatHold> seatHolds
+	b. main method
+		i. invoke the bootstrapping
+		ii. prompt for user input based on application flow
+		iii. user input "q" either quits out of a given user, or quits the application if no user is logged in
+
+
+Menus
+	Main
+		Welcome to Vivacious Venue!
+		Enter q at any time to quit
+		Enter a customer email to login and hold seats
+		
+	Customer Menu
+		Welcome <customer email>!
+		You can enter q at any time to quit and return to the main menu
+		(1) Find out how many seats are left in the venue
+		(2) Reserve seats
+			Provide the number of seats you wish to reserve
+			Seats have been held OR Seats were not able to be held
+			Would you like to reserve the seats (y/n)?
+				y: Confirmation number
+				n: return to customer menu
+		
+	
+Bootstrap
+	1. Create the Venue according to property file dimensions specified
+	2. Create the persistent storage for the domain objects (optional)
+
+Domain
+	1. Venue - Singleton (may not be necessary since there can only be one user at a time)
+		a. instance variables
+			i. List<Seat> seats
+		b. constructors
+			i. (int numRows, int numSeatsPerRow)
+		c. methods
+			i. int seatsAvailable()
+			ii. 
+	2. Customer
+		a. instance variables
+			i. email
+		b. constructors
+			i. (String email)
+		c. methods
+			i. getEmail
+	3. Seat
+		a. instance variables
+			i. boolean reserved
+			ii. int row
+			iii. int seatNum
+			iv. LocalDateTime holdTime
+		b. methods
+			i. isHeld()
+				This method will determine whether the seat has a hold on it by comparing now to the hold time and determining whether the hold has expired
+	4. SeatHold
+		a. instance variables
+			i. int seatHoldId
+			ii. List<Seat> heldSeats
+			iii. Customer customer
+
+Service
+	1. TicketServiceImpl
+		a. numSeatsAvailable() 
+			i. This will use the Venue object to determine how many seats are available in the venue
+		b. SeatHold findAndHoldSeats(int numSeats, String customerEmail)
+			i. This will use the Venue object to provide a SeatHold object with all of the Seats that the customer is holding
+		c. String reserveSeats(int seatHoldId, String customerEmail)
+			i. This will retrieve the SeatHold object based on seatHoldId
+		
+
+Application Architecture
+	Use maven to generate a startup project
+	mvn archetype:generate -DgroupId=com.ticket -DartifactId=ticket-service -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
+Should the application or the venue own all of the seat holds?
+
+
+
+Approach Info
+The Seats should be aware of whether they are held or not. The app should not have to look at all the holds to determine whether seats are held.\
+Make sure to generate comments as seen in the provided interface
+
+
+
+Research needed
+Command line menu flow
+Other interfaces needed to make the application more readable and flexible?
+
+Next Steps
+fix java version
+
+
+
