@@ -17,6 +17,8 @@ import com.ticket.console.TicketUserInterface;
  * 2. Find and hold the best available seats on behalf of the customer
  *		a. Each ticket hold should expire within a set number of seconds
  * 3. Reserve and commit a specific group of held seats for a customer
+ * 
+ * @author Grant Harper
  */
 public class App {
 	
