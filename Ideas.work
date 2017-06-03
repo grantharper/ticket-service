@@ -54,7 +54,7 @@ Domain
 	3. Seat
 		a. instance variables
 			i. boolean reserved
-			ii. int row
+			ii. String row
 			iii. int seatNum
 			iv. LocalDateTime holdTime
 		b. methods
@@ -76,6 +76,10 @@ Service
 			i. This will retrieve the SeatHold object based on seatHoldId
 		
 
+Arena Map for 10 x 10
+9  7  5  3  1  2  4  6  8  10
+
+		
 Application Architecture
 	Use maven to generate a startup project
 	mvn archetype:generate -DgroupId=com.ticket -DartifactId=ticket-service -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
@@ -104,7 +108,11 @@ Command line menu flow
 Other interfaces needed to make the application more readable and flexible?
 
 Next Steps
-fix java version
+Solve the problem of requests for seats larger than the number of seats in a given row
+
+Potential Issues
+If the application is running slowly, seat hold times could be different for seats accessed in different groups
+Could solve this by placing a temporary hold on them (to avoid other threads putting a hold) and then committing the hold once they are all in a list together
 
 
 Functional Interface work

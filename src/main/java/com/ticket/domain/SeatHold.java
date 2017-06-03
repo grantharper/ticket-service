@@ -1,15 +1,31 @@
 package com.ticket.domain;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public class SeatHold {
 
-	private int seatHoldId;
-	private List<Seat> seatsHeld;
-	private LocalDateTime expireTime;
-	private String customerEmail;
-	
-	
-	
+	private static int nextSeatHoldId = 1111;
+	private final int seatHoldId;
+	private final List<Seat> seatsHeld;
+	private final String customerEmail;
+
+	public SeatHold(List<Seat> seatsHeld, String customerEmail) {
+		this.seatHoldId = nextSeatHoldId;
+		nextSeatHoldId++;
+		this.seatsHeld = seatsHeld;
+		this.customerEmail = customerEmail;
+	}
+
+	public int getSeatHoldId() {
+		return seatHoldId;
+	}
+
+	public List<Seat> getSeatsHeld() {
+		return seatsHeld;
+	}
+
+	public String getCustomerEmail() {
+		return customerEmail;
+	}
+
 }

@@ -39,13 +39,13 @@ public class Row {
 			this.seats.put(i + 1, new Seat(venueId, rowId, i + 1));
 		}
 	}
-	
-	public int numSeatsAvailable(){
-		//TODO: consider optimization
+
+	public int numSeatsAvailable() {
+		// TODO: consider optimization
 		Iterator<Entry<Integer, Seat>> it = seats.entrySet().iterator();
 		int seatsAvailableInRow = 0;
-		while(it.hasNext()){
-			if(it.next().getValue().isAvailable()){
+		while (it.hasNext()) {
+			if (it.next().getValue().isAvailable()) {
 				seatsAvailableInRow++;
 			}
 		}
@@ -60,14 +60,14 @@ public class Row {
 	 * @return list of seats that have been held. If unsuccessful, returns null
 	 */
 	List<Seat> holdSeats(int numSeatsRequested) {
-		//if numberOfSeats is greater than the seats in the row
-		if(numSeatsRequested > seats.size()){
-			return null;
-		}
-		
 		// initialize with the number requested to avoid having to recreate it
 		// internally
 		List<Seat> heldSeats = new ArrayList<>(numSeatsRequested);
+
+		// if numberOfSeats is greater than the seats in the row
+		if (numSeatsRequested > seats.size()) {
+			return heldSeats;
+		}
 
 		// case where we can start from the middle
 		if (seats.get(1).isAvailable()) {
@@ -78,53 +78,77 @@ public class Row {
 			return heldSeats;
 		}
 
-		// case where we can't start from the middle. Start with whichever side has the first available seat
-		for(int i = 2; i <= seats.size(); i++){
-			
-			if(seats.get(i).isAvailable()){
+		// case where we can't start from the middle. Start with whichever side
+		// has the first available seat
+		for (int i = 2; i <= seats.size(); i++) {
+
+			if (seats.get(i).isAvailable()) {
 				heldSeats = holdRightOrLeftSeats(numSeatsRequested, i);
 				return heldSeats;
-			}else{
-				// some optimization to short circuit the holding of seats if I can already tell there won't be enough
-				if(numSeatsRequested > ((seats.size() - i) / 2) + (seats.size() - i) % 2){
-					return null;
-				}
 			}
+			// else{
+			// some optimization to short circuit the holding of seats if I can
+			// already tell there won't be enough
+			// if(numSeatsRequested > ((seats.size() - i) / 2) + (seats.size() -
+			// i) % 2){
+			// return null;
+			// }
+			// }
 		}
-		
-		//could not find available seats in the row
-		return null;
+
+		// could not find available seats in the row
+		return heldSeats;
 
 	}
 
 	/**
 	 * 
-	 * @param numSeats number of seats to be held
-	 * @param startingSeat the first available seat on that side
+	 * @param numSeats
+	 *            number of seats to be held
+	 * @param startingSeat
+	 *            the first available seat on that side
 	 * @return
 	 */
 	private List<Seat> holdRightOrLeftSeats(int numSeats, int startingSeat) {
 		List<Seat> heldSeats = new ArrayList<>(numSeats);
 		List<Seat> availableSeats = new ArrayList<>(numSeats);
-		//TODO: think about whether this check is necessary given the optimization of making sure there are enough seats remaining
-		for (int i = startingSeat; i <= seats.size(); i+=2 ){
-			if (seats.get(i).isAvailable()){
+		// TODO: think about whether this check is necessary given the
+		// optimization of making sure there are enough seats remaining
+		for (int i = startingSeat; i <= seats.size(); i += 2) {
+			if (seats.get(i).isAvailable()) {
 				availableSeats.add(seats.get(i));
 			}
+			if (availableSeats.size() == numSeats) {
+				break;
+			}
 		}
-		
-		//if there are enough, hold the seats
-		if(availableSeats.size() >= numSeats){
-			for(Seat oddSeat: availableSeats){
+
+		// if there are enough, hold the seats
+		if (availableSeats.size() >= numSeats) {
+			for (Seat oddSeat : availableSeats) {
 				oddSeat.placeHold();
 				heldSeats.add(oddSeat);
 			}
 			return heldSeats;
-		}else{
-			return null;
+		} else {
+			return heldSeats;
 		}
 	}
-	
-	
+
+	public String print() {
+		Iterator<Entry<Integer, Seat>> it = seats.entrySet().iterator();
+		String rowString = "";
+		while (it.hasNext()) {
+			Seat currentSeat = it.next().getValue();
+			// takes into account the odds being on the left and the evens being
+			// on the right
+			if ((currentSeat.getSeatId()) % 2 == 1) {
+				rowString = currentSeat.print() + rowString;
+			} else {
+				rowString = rowString + currentSeat.print();
+			}
+		}
+		return rowString;
+	}
 
 }

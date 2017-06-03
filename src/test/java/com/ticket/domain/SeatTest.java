@@ -13,12 +13,12 @@ import org.junit.Test;
 public class SeatTest {
 
 	private Seat seat;
-	
+
 	@Before
-	public void setUp(){
+	public void setUp() {
 		seat = new Seat(1, 1, 1);
 	}
-	
+
 	@Test
 	public void testSeatHold() throws InterruptedException {
 		assertNull(seat.getHoldTime());
@@ -27,16 +27,16 @@ public class SeatTest {
 		Thread.sleep(2000);
 		assertTrue(LocalDateTime.now().isAfter(seat.getHoldTime()));
 	}
-	
+
 	@Test
-	public void testIsHeld() throws InterruptedException{
-		
+	public void testIsHeld() throws InterruptedException {
+
 		assertFalse(seat.isHeld());
 		seat.placeHold();
 		assertTrue(seat.isHeld());
 		Thread.sleep(Venue.HOLD_DURATION.toMillis());
 		assertFalse(seat.isHeld());
-		
+
 	}
 
 }
