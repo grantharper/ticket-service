@@ -13,12 +13,10 @@ import org.junit.Test;
 public class SeatTest {
 
 	private Seat seat;
-	private Venue venue;
 	
 	@Before
 	public void setUp(){
-		venue = new Venue(2);
-		seat = new Seat(venue, "A", 1);
+		seat = new Seat(1, 1, 1);
 	}
 	
 	@Test
@@ -36,7 +34,7 @@ public class SeatTest {
 		assertFalse(seat.isHeld());
 		seat.placeHold();
 		assertTrue(seat.isHeld());
-		Thread.sleep(venue.getHoldDuration().toMillis());
+		Thread.sleep(Venue.HOLD_DURATION.toMillis());
 		assertFalse(seat.isHeld());
 		
 	}

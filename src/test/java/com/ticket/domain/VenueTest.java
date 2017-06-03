@@ -7,8 +7,10 @@ import org.junit.Test;
 public class VenueTest {
 
 	@Test
-	public void test() {
-		fail("Not yet implemented");
+	public void testAvailableSeatsInVenue() {
+		Venue venue = new Venue(1, 10, 10);
+		
+		assertEquals(100, venue.numSeatsAvailable());
 	}
 
 }

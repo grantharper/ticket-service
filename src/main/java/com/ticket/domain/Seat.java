@@ -11,17 +11,17 @@ public class Seat {
 	/**
 	 * the venue where the seat is located
 	 */
-	private final Venue venue;
+	private final int venueId;
 	
 	/**
 	 * the row where the seat is located which cannot change (e.g. A, B)
 	 */
-	private final String seatRow;
+	private final int rowId;
 	
 	/**
-	 * the seat number of the seat which cannot change (e.g. 1, 2)
+	 * the unique identifier for the seat
 	 */
-	private final int seatNum;
+	private final int seatId;
 	
 	/**
 	 * the time at which the hold was placed on the seat
@@ -35,14 +35,32 @@ public class Seat {
 	private boolean reserved;
 	
 	/**
+	 * email of the customer who reserved the seats
+	 */
+	private String customerReservationEmail;
+	
+	/**
 	 * Instantiation of the seat
 	 * @param seatRow the row where the seat is located 
 	 * @param seatNum the number of the seat
 	 */
-	public Seat(Venue venue, String seatRow, int seatNum){
-		this.venue = venue;
-		this.seatRow = seatRow;
-		this.seatNum = seatNum;
+	public Seat(int venueId, int rowId, int seatId){
+		this.venueId = venueId;
+		this.rowId = rowId;
+		this.seatId = seatId;
+	}
+	
+	/**
+	 * determines whether a seat is available for being held or reserved
+	 * @return an indicator as to whether the seat is available
+	 */
+	public boolean isAvailable(){
+		if(reserved){
+			return false;
+		} else if (isHeld()){
+			return false;
+		}
+		return true;
 	}
 	
 	/**
@@ -52,7 +70,7 @@ public class Seat {
 	public boolean isHeld(){
 		if(holdTime == null){
 			return false;
-		}else if (holdTime.plus(venue.getHoldDuration()).isBefore(LocalDateTime.now())){
+		}else if (holdTime.plus(Venue.HOLD_DURATION).isBefore(LocalDateTime.now())){
 			return false;
 		}else{
 			return true;
@@ -65,26 +83,31 @@ public class Seat {
 		return holdTime;
 	}
 	
+	public void reserveSeat(String customerEmail) {
+		this.reserved = true;
+		this.customerReservationEmail = customerEmail;
+	}
 
 	public boolean isReserved() {
 		return reserved;
-	}
-
-	public void setReserved(boolean reserved) {
-		this.reserved = reserved;
 	}
 
 	public LocalDateTime getHoldTime() {
 		return holdTime;
 	}
 
-	public String getSeatRow() {
-		return seatRow;
+	public int getVenueId() {
+		return venueId;
 	}
 
-	public int getSeatNum() {
-		return seatNum;
+	public int getRowId() {
+		return rowId;
 	}
+
+	public int getSeatId() {
+		return seatId;
+	}
+
 	
 	
 	
