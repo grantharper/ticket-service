@@ -1,22 +1,34 @@
 package com.ticket;
 
-import java.io.Console;
+import java.util.function.BiConsumer;
+
+import org.beryx.textio.TextIO;
+import org.beryx.textio.TextIoFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.ticket.console.TicketUserInterface;
 
 /**
- * Hello world!
- *
+ * The main Application class for the ticket service.
+ * It offers the following capabilities.
+ * 1. Find the number of seats available within a venue
+ *		a. Seats that are neither held nor reserved are defined as available
+ * 2. Find and hold the best available seats on behalf of the customer
+ *		a. Each ticket hold should expire within a set number of seconds
+ * 3. Reserve and commit a specific group of held seats for a customer
  */
 public class App {
+	
+	public static final Logger LOGGER = LoggerFactory.getLogger(App.class);
+	
 	public static void main(String[] args) {
-		Console console = System.console();
-		String keyboardInput = "";
+		LOGGER.info("Ticket Service starting up");
+		TextIO textIO = TextIoFactory.getTextIO();
 		
-		System.out.println("Welcome to Awesome Venue!");
-		while(!keyboardInput.equalsIgnoreCase("q")){
-			//prompt the user
-			keyboardInput = console.readLine("Enter whatever you want and enter q to quit:\n");
-			System.out.println("You entered: " + keyboardInput);
-		}
+		BiConsumer<TextIO, String> app = new TicketUserInterface(textIO);
 		
+		app.accept(textIO, null);
+
 	}
 }

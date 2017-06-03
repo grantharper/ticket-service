@@ -81,12 +81,22 @@ Application Architecture
 	mvn archetype:generate -DgroupId=com.ticket -DartifactId=ticket-service -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
 Should the application or the venue own all of the seat holds?
 
+Logging
+By default, the logger is set to INFO. In order to change the level to DEBUG, pass this as a system property at startup
+-Dorg.slf4j.simpleLogger.defaultLogLevel=DEBUG
 
 
 Approach Info
 The Seats should be aware of whether they are held or not. The app should not have to look at all the holds to determine whether seats are held.\
 Make sure to generate comments as seen in the provided interface
 
+
+Execution of application from command line
+mvn clean install
+java -cp ./target/classes com.ticket.App
+
+Execution via Jar file
+java -jar 
 
 
 Research needed
@@ -95,6 +105,15 @@ Other interfaces needed to make the application more readable and flexible?
 
 Next Steps
 fix java version
+
+
+Functional Interface work
+
+.withValueChecker((u, v) -> {
+			List<String> errorMessages = new ArrayList<>();
+			errorMessages.add("Please enter a valid email address");
+			return errorMessages;
+		});
 
 
 
