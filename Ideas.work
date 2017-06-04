@@ -97,7 +97,7 @@ Make sure to generate comments as seen in the provided interface
 
 Execution of application from command line
 mvn clean install
-java -cp ./target/classes com.ticket.App
+mvn exec:java
 
 Execution via Jar file
 java -jar 

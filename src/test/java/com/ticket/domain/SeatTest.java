@@ -13,6 +13,7 @@ import org.junit.Test;
 public class SeatTest {
 
 	private Seat seat;
+	private String customerEmail = "email@email.com";
 
 	@Before
 	public void setUp() {
@@ -31,12 +32,22 @@ public class SeatTest {
 	@Test
 	public void testIsHeld() throws InterruptedException {
 
+		assertTrue(seat.isAvailable());
 		assertFalse(seat.isHeld());
 		seat.placeHold();
 		assertTrue(seat.isHeld());
+		assertFalse(seat.isAvailable());
 		Thread.sleep(Venue.HOLD_DURATION.toMillis());
 		assertFalse(seat.isHeld());
+		assertTrue(seat.isAvailable());
 
+	}
+	
+	@Test
+	public void testReservation(){
+		seat.reserveSeat(customerEmail);
+		assertTrue(seat.isReserved());
+		assertFalse(seat.isAvailable());
 	}
 
 }

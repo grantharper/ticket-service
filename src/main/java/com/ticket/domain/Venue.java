@@ -1,6 +1,7 @@
 package com.ticket.domain;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -11,7 +12,6 @@ import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ticket.App;
 import com.ticket.service.TicketService;
 
 /**
@@ -91,10 +91,12 @@ public class Venue implements TicketService {
 
 		while (heldSeats.size() < numSeatsRequested) {
 
-			for (Integer request : seatRequests) {
-				List<Seat> temp = holdSeats(request);
+			for (int i = 0; i < seatRequests.size(); i++ ) {
+				List<Seat> temp = holdSeats(seatRequests.get(i));
 				if (!temp.isEmpty()) {
 					heldSeats.addAll(temp);
+					seatRequests.remove(i);
+					i--;
 				}
 
 				// else{
@@ -128,7 +130,7 @@ public class Venue implements TicketService {
 		}
 
 		// populate the SeatHold with the list of seats and customer info and
-		SeatHold seatHold = new SeatHold(heldSeats, customerEmail);
+		SeatHold seatHold = new SeatHold(heldSeats, customerEmail, LocalDateTime.now().plus(HOLD_DURATION));
 		// add it to the list of venue seat holds
 		this.seatHolds.put(seatHold.getSeatHoldId(), seatHold);
 		// return the seat hold
@@ -187,6 +189,12 @@ public class Venue implements TicketService {
 
 		// retrieve the seat hold by id
 		SeatHold seatHold = seatHolds.get(seatHoldId);
+		
+		//determine if the seatHold has expired
+		if(seatHold.isExpired()){
+			return null;
+		}
+		
 		// reserve the seats based on the seat hold
 		for (Seat seat : seatHold.getSeatsHeld()) {
 			seat.reserveSeat(customerEmail);
@@ -198,10 +206,7 @@ public class Venue implements TicketService {
 		return reservation.getConfirmationId();
 	}
 
-	public int getVenueId() {
-		return venueId;
-	}
-
+	
 	public void printVenue() {
 		Iterator<Entry<Integer, Row>> it = rows.entrySet().iterator();
 		String venueModel = "\n";
@@ -211,4 +216,23 @@ public class Venue implements TicketService {
 		LOGGER.info(venueModel);
 	}
 
+	public int getVenueId() {
+		return venueId;
+	}
+
+	public Map<Integer, Row> getRows() {
+		return rows;
+	}
+
+	public Map<Integer, SeatHold> getSeatHolds() {
+		return seatHolds;
+	}
+
+	public Map<String, SeatReservation> getSeatReservations() {
+		return seatReservations;
+	}
+
+	
+	
+	
 }

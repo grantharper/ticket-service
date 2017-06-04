@@ -116,6 +116,10 @@ public class Seat {
 		return seatId;
 	}
 
+	public String getCustomerReservationEmail() {
+		return customerReservationEmail;
+	}
+
 	public String print() {
 		if (this.isReserved()) {
 			return "R ";
