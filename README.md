@@ -22,4 +22,7 @@ Assumptions:
 	7. Customers can hold as many seats as they wish
 	8. There will be no interactive countdown clock
 	
-	
+After cloning the repository, run the following commands from the project root to build and run the ticket service
+
+mvn clean install
+mvn exec:java

@@ -99,16 +99,16 @@ Execution of application from command line
 mvn clean install
 mvn exec:java
 
-Execution via Jar file
-java -jar 
-
-
 Research needed
-Command line menu flow
-Other interfaces needed to make the application more readable and flexible?
+Using interfaces to make the interface between the ui and the venue less coupled
+
 
 Next Steps
-Solve the problem of requests for seats larger than the number of seats in a given row
+Write better java docs
+Clean up the UI so that it looks better
+Externalize some constants to property files
+
+
 
 Potential Issues
 If the application is running slowly, seat hold times could be different for seats accessed in different groups
