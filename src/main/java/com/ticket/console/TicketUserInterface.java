@@ -1,5 +1,6 @@
 package com.ticket.console;
 
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 import org.beryx.textio.EnumInputReader;
@@ -15,6 +16,7 @@ import com.ticket.domain.SeatHold;
 import com.ticket.domain.Venue;
 import com.ticket.service.TicketService;
 import com.ticket.service.VenueTicketService;
+import com.util.AppProperties;
 
 /**
  * The user interface class for the ticket service. This class will govern how
@@ -28,31 +30,81 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	 * regex to validate user emails that are entered into the prompt
 	 */
 	private static final String EMAIL_REGEX = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
-	
 
+	/**
+	 * the main menu reader used to allow the user to interact with the venue ticket service
+	 */
 	private EnumInputReader<MainMenu> mainMenuReader;
+	
+	/**
+	 * the reader used to allow the user to log in with an email address
+	 */
 	private StringInputReader userEmailReader;
+	
+	/**
+	 * the reader used to allow the user to request seats
+	 */
 	private IntInputReader numberOfSeatsRequestedReader;
+	
+	/**
+	 * the reader used to allow the user to confirm their hold on seats
+	 */
 	private EnumInputReader<YesNo> confirmationReader;
 	
+	/**
+	 * properties object to allow the user interface to access the property file information
+	 */
+	private Map<String, String> appProperties = new AppProperties().getProperties();
+	
+	/**
+	 * the venue that the user will interact with
+	 */
 	private VenueTicketService venue;
 	
+	
+	private TextTerminal terminal;
+	
+	private TerminalProperties props;
+	
+	/**
+	 * instantiates the readers used by the terminal to interpret user input
+	 * @param textIO
+	 */
 	public TicketUserInterface(TextIO textIO) {
-		mainMenuReader = textIO.newEnumInputReader(MainMenu.class);
-		userEmailReader = textIO.newStringInputReader().withPattern(EMAIL_REGEX);
-		numberOfSeatsRequestedReader = textIO.newIntInputReader().withMinVal(0);
-		confirmationReader = textIO.newEnumInputReader(YesNo.class);
-		venue = new Venue(1, 10, 20);
+		this.mainMenuReader = textIO.newEnumInputReader(MainMenu.class);
+		this.userEmailReader = textIO.newStringInputReader().withPattern(EMAIL_REGEX);
+		this.numberOfSeatsRequestedReader = textIO.newIntInputReader().withMinVal(0);
+		this.confirmationReader = textIO.newEnumInputReader(YesNo.class);
+		this.terminal = textIO.getTextTerminal();
+		this.props = terminal.getProperties();
+		loadVenue();
+	}
+	
+	/**
+	 * helper method to read the property file venue properties and instantiate the venue
+	 */
+	public void loadVenue(){
+		try{
+			int venueId = Integer.parseInt(appProperties.get("venue.id"));
+			int venueRows = Integer.parseInt(appProperties.get("venue.rows"));
+			int venueSeatsPerRow = Integer.parseInt(appProperties.get("venue.seatsPerRow"));
+			venue = new Venue(venueId, venueRows, venueSeatsPerRow);
+		} catch(Exception e){
+			LOGGER.error("Invalid properties found. Building simple venue");
+			venue = new Venue(1, 10, 20);
+		}
+		
 	}
 
+	/**
+	 * method that runs the terminal that the user will use to provide inputs to the venue ticket service
+	 */
 	public void accept(TextIO textIO, String initData) {
-		TextTerminal terminal = textIO.getTextTerminal();
-		TerminalProperties props = terminal.getProperties();
 
 		while (true) {
 			terminal.println("Welcome to the Venue!\n Use ctrl-c to quit\n");
-			printLineBreak(terminal);
-			insertWaitTime(terminal);
+			printLineBreak();
+			insertWaitTime();
 			
 			boolean customerLoggedIn = false;
 			String customerEmail;
@@ -61,69 +113,72 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 			customerEmail = userEmailReader.read("Please provide your email address to log in: ");
 			customerLoggedIn = true;
 
-			insertWaitTime(terminal);
-			changeToImportantColor(props);
+			insertWaitTime();
+			changeToImportantColor();
 			terminal.println("You have successfully logged in as " + customerEmail + "\n");
-			resetPromptColor(props);
-			insertWaitTime(terminal);
+			resetPromptColor();
+			insertWaitTime();
 			
 			while (customerLoggedIn) {
 				
-				printLineBreak(terminal);
-				printVenueMap(terminal);
+				printLineBreak();
+				printVenueMap();
 				terminal.println("Current User: " + customerEmail + "\n");
 				MainMenu menu = mainMenuReader.read("Main Menu:");
 				SeatHold seatHold = null;
-				insertWaitTime(terminal);
+				insertWaitTime();
 				
 				if (menu.equals(MainMenu.LOGOUT)) {
-					insertWaitTime(terminal);
-					changeToImportantColor(props);
+					insertWaitTime();
+					changeToImportantColor();
 					terminal.println("You have successfully logged out.");
-					resetPromptColor(props);
-					printLineBreak(terminal);
+					resetPromptColor();
+					printLineBreak();
 					break;
 				} else if (menu.equals(MainMenu.SEATS_AVAILABLE)) {
 
 					int remainingSeats = venue.numSeatsAvailable();
-					changeToImportantColor(props);
+					changeToImportantColor();
 					terminal.printf("Remaining Seats: %d \n\n", remainingSeats);
-					resetPromptColor(props);
-					insertWaitTime(terminal);
+					resetPromptColor();
+					insertWaitTime();
 
 				} else if(menu.equals(MainMenu.SELECT_SEATS)) {
 					numberOfSeatsRequested = numberOfSeatsRequestedReader.read("Number of seats requested: ");
 
 					if (numberOfSeatsRequested > 0) {
-						changeToImportantColor(props);
+						
 						terminal.printf("Calculating best available seats\n\n");
-						insertWaitTime(terminal);
+						insertWaitTime();
+						
+						
 
 						seatHold = venue.findAndHoldSeats(numberOfSeatsRequested, customerEmail);
-						
+						changeToImportantColor();
 						if(seatHold != null){
 							terminal.printf("Held %d seats\n\n", numberOfSeatsRequested);
 							terminal.print("Seat hold will expire in " + (Venue.HOLD_DURATION.toMillis() / 1000) + " seconds.\n\n");
 						}else{
 							terminal.println("Unable to hold seats. Not enough remaining seats in the venue");
 						}
-						resetPromptColor(props);
-						printVenueMap(terminal);
-						insertWaitTime(terminal);
+						resetPromptColor();
+						printVenueMap();
+						
+						insertWaitTime();
 
 						if (confirmationReader.read("Please confirm your selection: ").booleanValueOf()) {
 							LOGGER.info("Confirming the seat selection");
 							
 							String confirmationNumber = venue.reserveSeats(seatHold.getSeatHoldId(), customerEmail);
-							insertWaitTime(terminal);
-							changeToImportantColor(props);
+							insertWaitTime();
+							changeToImportantColor();
 							if(confirmationNumber != null){
 								terminal.printf("Success! Confirmation number: %s\n\n", confirmationNumber);
 							}else{
 								terminal.println("Your seat hold has expired. Please try again.");
 							}
-							resetPromptColor(props);
-							insertWaitTime(terminal);
+							resetPromptColor();
+							insertWaitTime();
 							
 						}
 					}
@@ -136,7 +191,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 
 	}
 	
-	private void insertWaitTime(TextTerminal terminal){
+	private void insertWaitTime(){
 		long waitTime = 200;
 		try {
 			Thread.sleep(waitTime);
@@ -145,19 +200,19 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 		}
 	}
 	
-	private void printVenueMap(TextTerminal terminal){
+	private void printVenueMap(){
 		terminal.print(venue.printVenue());
 	}
 	
-	private void resetPromptColor(TerminalProperties props){
+	private void resetPromptColor(){
 		props.setPromptColor("white");
 	}
 	
-	private void changeToImportantColor(TerminalProperties props){
+	private void changeToImportantColor(){
 		props.setPromptColor("red");
 	}
 	
-	private void printLineBreak(TextTerminal terminal){
+	private void printLineBreak(){
 		terminal.println("------------------------------------------------\n");
 	}
 

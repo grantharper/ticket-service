@@ -36,14 +36,17 @@ Bootstrap
 	2. Create the persistent storage for the domain objects (optional)
 
 Domain
-	1. Venue - Singleton (may not be necessary since there can only be one user at a time)
+	1. Venue implements the TicketService
 		a. instance variables
 			i. List<Seat> seats
 		b. constructors
 			i. (int numRows, int numSeatsPerRow)
-		c. methods
-			i. int seatsAvailable()
-			ii. 
+		c. numSeatsAvailable() 
+			i. This will use the Venue object to determine how many seats are available in the venue
+		b. SeatHold findAndHoldSeats(int numSeats, String customerEmail)
+			i. This will use the Venue object to provide a SeatHold object with all of the Seats that the customer is holding
+		c. String reserveSeats(int seatHoldId, String customerEmail)
+			i. This will retrieve the SeatHold object based on seatHoldId
 	2. Customer
 		a. instance variables
 			i. email
@@ -66,14 +69,7 @@ Domain
 			ii. List<Seat> heldSeats
 			iii. Customer customer
 
-Service
-	1. TicketServiceImpl
-		a. numSeatsAvailable() 
-			i. This will use the Venue object to determine how many seats are available in the venue
-		b. SeatHold findAndHoldSeats(int numSeats, String customerEmail)
-			i. This will use the Venue object to provide a SeatHold object with all of the Seats that the customer is holding
-		c. String reserveSeats(int seatHoldId, String customerEmail)
-			i. This will retrieve the SeatHold object based on seatHoldId
+
 		
 
 Arena Map for 10 x 10
@@ -105,9 +101,10 @@ Using interfaces to make the interface between the ui and the venue less coupled
 
 Next Steps
 Write better java docs
-Clean up the UI so that it looks better
-Externalize some constants to property files
-Use the TicketService interface or extend it for the TicketUserInterface class to use
+Clean up the UI so that it looks better - done
+Externalize some constants to property file - done, but should I be using Spring for dependency injection?
+Use the TicketService interface or extend it for the TicketUserInterface class to use - done
+Fix the divide by two issue
 
 
 Potential Issues

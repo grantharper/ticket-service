@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ticket.service.VenueTicketService;
+import com.util.AppProperties;
 
 /**
  * The venue object will describe a venue with a given number of rows of seats
@@ -47,6 +48,17 @@ public class Venue implements VenueTicketService {
 	 * the seat reservations for the venue
 	 */
 	private Map<String, SeatReservation> seatReservations = new HashMap<>();
+	
+	/**
+	 * number of rows in the venue
+	 */
+	private int numRows;
+	
+	/**
+	 * number of seats per row in the venue
+	 */
+	private int numSeatsPerRow;
+
 
 	/**
 	 * instantiates the venue
@@ -60,10 +72,14 @@ public class Venue implements VenueTicketService {
 	 */
 	public Venue(int venueId, int numRows, int numSeatsPerRow) {
 		this.venueId = venueId;
+		this.numRows = numRows;
+		this.numSeatsPerRow = numSeatsPerRow;
+		
 		for (int i = 1; i <= numRows; i++) {
 			this.rows.put(i, new Row(venueId, i, numSeatsPerRow));
 		}
 	}
+	
 
 	@Override
 	public int numSeatsAvailable() {
@@ -87,8 +103,18 @@ public class Venue implements VenueTicketService {
 		// go through each row and get the List of seats that are held
 		List<Seat> heldSeats = new ArrayList<>(numSeatsRequested);
 		List<Integer> seatRequests = new ArrayList<>();
-		seatRequests.add(numSeatsRequested);
+		
+		//case where the number of seats requested is larger than the size of a complete row
+		//divide the request in groups of complete rows 
+		if(numSeatsRequested > numSeatsPerRow){
+			seatRequests = divideSeatRequestsIntoCompleteRows(numSeatsRequested);
+		}
+		//case where the number of seats requested is smaller than the size of a complete row
+		else{
+			seatRequests.add(numSeatsRequested);
+		}
 
+		
 		while (heldSeats.size() < numSeatsRequested) {
 
 			for (int i = 0; i < seatRequests.size(); i++ ) {
@@ -96,6 +122,9 @@ public class Venue implements VenueTicketService {
 				if (!temp.isEmpty()) {
 					heldSeats.addAll(temp);
 					seatRequests.remove(i);
+					if (heldSeats.size() >= numSeatsRequested) {
+						break;
+					} 
 					i--;
 				}
 
@@ -155,6 +184,25 @@ public class Venue implements VenueTicketService {
 		}
 		return heldSeats;
 	}
+	
+	/**
+	 * method used to divide requests into groups of complete rows and then remainder
+	 * @param numSeatsRequested
+	 * @return list of groupings of seats to be held
+	 */
+	public List<Integer> divideSeatRequestsIntoCompleteRows(int numSeatsRequested){
+		int numberOfCompleteRows = numSeatsRequested / this.numSeatsPerRow;
+		int remainder = numSeatsRequested % this.numSeatsPerRow;
+		
+		List<Integer> seatRequests = new ArrayList<>(numberOfCompleteRows + 1);
+		for(int i = 0; i < numberOfCompleteRows; i++){
+			seatRequests.add(this.numSeatsPerRow);
+		}
+		if(remainder > 0){
+			seatRequests.add(remainder);
+		}
+		return seatRequests;
+	}
 
 	// attempt at optimization
 	private List<Seat> holdSeatsOptimized(int totalSeatsRequested) {
@@ -206,7 +254,10 @@ public class Venue implements VenueTicketService {
 		return reservation.getConfirmationId();
 	}
 
-	
+	/**
+	 * prints a visual representation of the venue's rows and seats as well as their state
+	 * A = available, H = held, R = reserved
+	 */
 	public String printVenue() {
 		Iterator<Entry<Integer, Row>> it = rows.entrySet().iterator();
 		String venueModel = "";

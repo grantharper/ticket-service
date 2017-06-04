@@ -3,6 +3,8 @@ package com.ticket.domain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,7 +23,7 @@ public class VenueTest {
 	public void setUp(){
 		venueId = 1;
 		venueRows = 10;
-		venueSeatsPerRow = 10;
+		venueSeatsPerRow = 20;
 		totalVenueSeats = venueRows * venueSeatsPerRow;
 		venue = new Venue(venueId, venueRows, venueSeatsPerRow);
 	}
@@ -29,6 +31,16 @@ public class VenueTest {
 	@Test
 	public void testAvailableSeatsInVenue() {
 		assertEquals(totalVenueSeats, venue.numSeatsAvailable());
+	}
+	
+	@Test
+	public void testDivideGroups(){
+		int numSeatsRequested = 47;
+		List<Integer> seatRequests = venue.divideSeatRequestsIntoCompleteRows(numSeatsRequested);
+		assertEquals(3, seatRequests.size());
+		assertEquals(20, seatRequests.get(0).intValue());
+		assertEquals(7, seatRequests.get(2).intValue());
+				
 	}
 
 	@Test
@@ -57,7 +69,7 @@ public class VenueTest {
 	
 	@Test
 	public void testMaxOutVenue(){
-		int reserveSeats = 101;
+		int reserveSeats = totalVenueSeats + 1;
 		assertNull(venue.findAndHoldSeats(reserveSeats, customerEmail));
 		
 	}
@@ -65,7 +77,7 @@ public class VenueTest {
 	@Test
 	public void testIncrementallyMaxOut(){
 		int reserveSeats = 2;
-		for(int i = 0; i < 50; i++){
+		for(int i = 0; i < totalVenueSeats / 2; i++){
 			venue.findAndHoldSeats(reserveSeats, customerEmail);
 		}
 		assertEquals(0, venue.numSeatsAvailable());
@@ -76,10 +88,10 @@ public class VenueTest {
 	@Test
 	public void testReserveBy3(){
 		int reserveSeats = 3;
-		for(int i = 0; i < 33; i++){
+		for(int i = 0; i < totalVenueSeats / reserveSeats; i++){
 			venue.findAndHoldSeats(reserveSeats, customerEmail);
 		}
-		assertEquals(1, venue.numSeatsAvailable());
+		assertEquals(totalVenueSeats % reserveSeats, venue.numSeatsAvailable());
 	}
 	
 	@Test
