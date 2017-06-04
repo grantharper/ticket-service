@@ -13,3 +13,7 @@ Worked on UI flow
 6/3
 Designed the internals of the app
 Wired everything together for the MVP
+
+6/4
+Cleaned up UI
+Adjusted to using the interface rather than concrete impl

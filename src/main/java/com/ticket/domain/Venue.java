@@ -12,14 +12,14 @@ import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ticket.service.TicketService;
+import com.ticket.service.VenueTicketService;
 
 /**
  * The venue object will describe a venue with a given number of rows of seats
  * It will allow for seat reservations
  *
  */
-public class Venue implements TicketService {
+public class Venue implements VenueTicketService {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(Venue.class);
 
@@ -207,13 +207,15 @@ public class Venue implements TicketService {
 	}
 
 	
-	public void printVenue() {
+	public String printVenue() {
 		Iterator<Entry<Integer, Row>> it = rows.entrySet().iterator();
-		String venueModel = "\n";
+		String venueModel = "";
 		while (it.hasNext()) {
 			venueModel += it.next().getValue().print() + "\n";
 		}
 		LOGGER.info(venueModel);
+		venueModel = "VENUE SEAT MAP \n\nA = Available, H = Held, R = Reserved \n\n" + venueModel + "\n\n";
+		return venueModel;
 	}
 
 	public int getVenueId() {

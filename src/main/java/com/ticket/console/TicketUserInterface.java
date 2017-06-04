@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.ticket.domain.SeatHold;
 import com.ticket.domain.Venue;
 import com.ticket.service.TicketService;
+import com.ticket.service.VenueTicketService;
 
 /**
  * The user interface class for the ticket service. This class will govern how
@@ -28,24 +29,20 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	 */
 	private static final String EMAIL_REGEX = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
 	
-	/**
-	 * welcome message for the venue
-	 */
-	private static final String WELCOME_MESSAGE = "Welcome to the Venue!";
 
 	private EnumInputReader<MainMenu> mainMenuReader;
 	private StringInputReader userEmailReader;
 	private IntInputReader numberOfSeatsRequestedReader;
 	private EnumInputReader<YesNo> confirmationReader;
 	
-	private TicketService venue;
+	private VenueTicketService venue;
 	
 	public TicketUserInterface(TextIO textIO) {
 		mainMenuReader = textIO.newEnumInputReader(MainMenu.class);
 		userEmailReader = textIO.newStringInputReader().withPattern(EMAIL_REGEX);
 		numberOfSeatsRequestedReader = textIO.newIntInputReader().withMinVal(0);
 		confirmationReader = textIO.newEnumInputReader(YesNo.class);
-		venue = new Venue(1, 100, 200);
+		venue = new Venue(1, 10, 20);
 	}
 
 	public void accept(TextIO textIO, String initData) {
@@ -53,7 +50,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 		TerminalProperties props = terminal.getProperties();
 
 		while (true) {
-			terminal.println(WELCOME_MESSAGE);
+			terminal.println("Welcome to the Venue!\n Use ctrl-c to quit\n");
 			printLineBreak(terminal);
 			insertWaitTime(terminal);
 			
@@ -71,7 +68,9 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 			insertWaitTime(terminal);
 			
 			while (customerLoggedIn) {
+				
 				printLineBreak(terminal);
+				printVenueMap(terminal);
 				terminal.println("Current User: " + customerEmail + "\n");
 				MainMenu menu = mainMenuReader.read("Main Menu:");
 				SeatHold seatHold = null;
@@ -109,6 +108,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 							terminal.println("Unable to hold seats. Not enough remaining seats in the venue");
 						}
 						resetPromptColor(props);
+						printVenueMap(terminal);
 						insertWaitTime(terminal);
 
 						if (confirmationReader.read("Please confirm your selection: ").booleanValueOf()) {
@@ -143,6 +143,10 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void printVenueMap(TextTerminal terminal){
+		terminal.print(venue.printVenue());
 	}
 	
 	private void resetPromptColor(TerminalProperties props){
