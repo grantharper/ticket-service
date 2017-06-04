@@ -26,7 +26,7 @@ public class Venue implements TicketService {
 	/**
 	 * the hold duration for all venues in this application
 	 */
-	public static final Duration HOLD_DURATION = Duration.ofSeconds(5);
+	public static final Duration HOLD_DURATION = Duration.ofSeconds(10);
 
 	/**
 	 * the unique identifier for the venue

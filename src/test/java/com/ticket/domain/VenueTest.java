@@ -15,6 +15,7 @@ public class VenueTest {
 	private int venueRows;
 	private int venueSeatsPerRow;
 	private int totalVenueSeats;
+	private long holdExpireSleepMillis = Venue.HOLD_DURATION.toMillis() + 1000;
 	
 	@Before
 	public void setUp(){
@@ -96,7 +97,7 @@ public class VenueTest {
 		venue.findAndHoldSeats(reserveSeats, customerEmail);
 		assertEquals(totalVenueSeats - reserveSeats, venue.numSeatsAvailable());
 		venue.printVenue();
-		Thread.sleep(Venue.HOLD_DURATION.toMillis());
+		Thread.sleep(holdExpireSleepMillis);
 		assertEquals(totalVenueSeats, venue.numSeatsAvailable());
 		venue.printVenue();
 	}
@@ -123,7 +124,7 @@ public class VenueTest {
 	public void reserveSeatsExpiredHold() throws InterruptedException{
 		int reserveSeats = 2;
 		SeatHold seatHold = venue.findAndHoldSeats(reserveSeats, customerEmail);
-		Thread.sleep(Venue.HOLD_DURATION.toMillis());
+		Thread.sleep(holdExpireSleepMillis);
 		String confirmationCode = venue.reserveSeats(seatHold.getSeatHoldId(), customerEmail);
 		assertNull(confirmationCode);
 	}

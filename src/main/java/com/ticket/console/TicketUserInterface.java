@@ -10,6 +10,9 @@ import org.beryx.textio.TextTerminal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ticket.domain.SeatHold;
+import com.ticket.domain.Venue;
+
 /**
  * The user interface class for the ticket service. This class will govern how
  * the user interacts with the ticket service The user will see a series of
@@ -26,11 +29,14 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	private IntInputReader numberOfSeatsRequestedReader;
 	private EnumInputReader<YesNo> confirmationReader;
 	
+	private Venue venue;
+	
 	public TicketUserInterface(TextIO textIO) {
 		mainMenuReader = textIO.newEnumInputReader(MainMenu.class);
 		userEmailReader = textIO.newStringInputReader().withPattern(EMAIL_REGEX);
 		numberOfSeatsRequestedReader = textIO.newIntInputReader().withMinVal(0);
 		confirmationReader = textIO.newEnumInputReader(YesNo.class);
+		venue = new Venue(1, 100, 200);
 	}
 
 	public void accept(TextIO textIO, String initData) {
@@ -39,25 +45,24 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 		terminal.println(WELCOME_MESSAGE);
 
 		while (true) {
-			boolean userLoggedIn = false;
-			String userEmail;
+			boolean customerLoggedIn = false;
+			String customerEmail;
 			int numberOfSeatsRequested;
 
-			userEmail = userEmailReader.read("Email: ");
-			userLoggedIn = true;
+			customerEmail = userEmailReader.read("Email: ");
+			customerLoggedIn = true;
 
-			while (userLoggedIn) {
-				terminal.println("User email " + userEmail + " is logged in");
+			while (customerLoggedIn) {
+				terminal.println("User email " + customerEmail + " is logged in");
 				MainMenu menu = mainMenuReader.read("Main Menu:");
+				SeatHold seatHold = null;
 				
 				if (menu.equals(MainMenu.LOGOUT)) {
 					terminal.println("Logging out");
 					break;
 				} else if (menu.equals(MainMenu.SEATS_AVAILABLE)) {
 
-					// TODO:calculate the number of remaining seats in the venue
-
-					int remainingSeats = 0;
+					int remainingSeats = venue.numSeatsAvailable();;
 					terminal.printf("Remaining Seats: %d \n\n", remainingSeats);
 
 				} else if(menu.equals(MainMenu.SELECT_SEATS)) {
@@ -66,15 +71,26 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 					if (numberOfSeatsRequested > 0) {
 
 						terminal.printf("Calculating best available seats\n\n");
-						// TODO:perform operations to hold the seats
 
-						terminal.printf("Held %d seats\n\n", numberOfSeatsRequested);
+						seatHold = venue.findAndHoldSeats(numberOfSeatsRequested, customerEmail);
+						if(seatHold != null){
+							terminal.printf("Held %d seats\n\n", numberOfSeatsRequested);
+							terminal.print("Seat hold will expire in " + Venue.HOLD_DURATION + " seconds");
+						}else{
+							terminal.println("Unable to hold seats. Not enough remaining seats in the venue");
+						}
+						
 
 						if (confirmationReader.read("Please confirm your selection: ").booleanValueOf()) {
-							// TODO:perform operations to secure the seats
 							LOGGER.info("Confirming the seat selection");
-							String confirmationNumber = "XXXXX";
-							terminal.printf("Success! Confirmation number: %s\n\n", confirmationNumber);
+							
+							String confirmationNumber = venue.reserveSeats(seatHold.getSeatHoldId(), customerEmail);
+							if(confirmationNumber != null){
+								terminal.printf("Success! Confirmation number: %s\n\n", confirmationNumber);
+							}else{
+								terminal.println("Your seat hold has expired. Please try again.");
+							}
+							
 						}
 					}
 					

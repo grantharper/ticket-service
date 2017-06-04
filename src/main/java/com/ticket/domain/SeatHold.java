@@ -1,6 +1,8 @@
 package com.ticket.domain;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class SeatHold {
@@ -40,6 +42,11 @@ public class SeatHold {
 			return true;
 		}
 		return false;
+	}
+	
+	public String timeToExpiration(){
+		Duration timeToExpire = Duration.between(LocalDateTime.now(), holdExpiration);
+		return "" + (timeToExpire.toMillis() / 1000) + " seconds";
 	}
 
 }

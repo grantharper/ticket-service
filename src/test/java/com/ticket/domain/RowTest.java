@@ -12,6 +12,7 @@ public class RowTest {
 
 	private Row smallRow;
 	private Row bigRow;
+	private long holdExpireSleepMillis = Venue.HOLD_DURATION.toMillis() + 1000;
 
 	@Before
 	public void setUp() {
@@ -77,7 +78,7 @@ public class RowTest {
 		assertTrue(holdSeatsDuringHold.isEmpty());
 
 		// wait for hold to expire
-		Thread.sleep(Venue.HOLD_DURATION.toMillis());
+		Thread.sleep(holdExpireSleepMillis);
 
 		// hold 99 seats after hold
 		List<Seat> holdSeatsAfterHold = bigRow.holdSeats(99);
@@ -93,7 +94,7 @@ public class RowTest {
 		bigRow.holdSeats(50);
 		assertEquals(50, bigRow.numSeatsAvailable());
 
-		Thread.sleep(Venue.HOLD_DURATION.toMillis());
+		Thread.sleep(holdExpireSleepMillis);
 
 		assertEquals(100, bigRow.numSeatsAvailable());
 	}
