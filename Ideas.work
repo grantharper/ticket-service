@@ -107,13 +107,13 @@ Next Steps
 Write better java docs
 Clean up the UI so that it looks better
 Externalize some constants to property files
-
+Use the TicketService interface or extend it for the TicketUserInterface class to use
 
 
 Potential Issues
 If the application is running slowly, seat hold times could be different for seats accessed in different groups
 Could solve this by placing a temporary hold on them (to avoid other threads putting a hold) and then committing the hold once they are all in a list together
-
+When user indicates they do not want to reserve the tickets they have a hold on, the hold should be released?
 
 Functional Interface work
 
