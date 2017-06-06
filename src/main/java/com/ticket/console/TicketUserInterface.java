@@ -72,6 +72,11 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	private TerminalProperties props;
 	
 	/**
+	 * flag indicating whether the venue map should be displayed to the user
+	 */
+	private boolean displayVenueMap;
+	
+	/**
 	 * instantiates the readers used by the terminal to interpret user input
 	 * @param textIO
 	 */
@@ -94,10 +99,12 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 			int venueRows = Integer.parseInt(appProperties.get("venue.rows"));
 			int venueSeatsPerRow = Integer.parseInt(appProperties.get("venue.seatsPerRow"));
 			int venueSeatHoldSeconds = Integer.parseInt(appProperties.get("venue.seatHoldSeconds"));
+			displayVenueMap = Boolean.parseBoolean(appProperties.get("venue.displayMap"));
 			venue = new Venue(venueId, venueRows, venueSeatsPerRow, venueSeatHoldSeconds);
 		} catch(Exception e){
 			LOGGER.error("Invalid properties found. Building simple venue of 10 rows, 20 seats per row, and a hold duration of 60 seconds");
 			venue = new Venue(1, 10, 20, 60);
+			displayVenueMap = true;
 		}
 		
 	}
@@ -197,6 +204,9 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 
 	}
 	
+	/**
+	 * helper method to insert wait time in the terminal for more intuitive user experience
+	 */
 	private void insertWaitTime(){
 		long waitTime = 200;
 		try {
@@ -206,39 +216,34 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 		}
 	}
 	
+	/**
+	 * helper method to print the venue map to the console
+	 */
 	private void printVenueMap(){
-		terminal.print(venue.printVenue());
+		if(displayVenueMap){
+			terminal.print(venue.printVenue());
+		}
 	}
 	
+	/**
+	 * helper method to reset the prompt color back to the normal color
+	 */
 	private void resetPromptColor(){
 		props.setPromptColor("white");
 	}
 	
+	/**
+	 * helper method to change the prompt color to red to signify important output
+	 */
 	private void changeToImportantColor(){
 		props.setPromptColor("red");
 	}
 	
+	/**
+	 * helper method to print a line break in the terminal
+	 */
 	private void printLineBreak(){
 		terminal.println("------------------------------------------------\n");
-	}
-
-	EnumInputReader<MainMenu> getMainMenuReader() {
-		return mainMenuReader;
-	}
-
-	StringInputReader getUserEmailReader() {
-		return userEmailReader;
-	}
-
-	IntInputReader getNumberOfSeatsRequestedReader() {
-		return numberOfSeatsRequestedReader;
-	}
-
-	EnumInputReader<YesNo> getConfirmationReader() {
-		return confirmationReader;
-	}
-	
-	
-	
+	}	
 
 }

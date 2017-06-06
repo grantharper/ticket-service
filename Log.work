@@ -17,3 +17,7 @@ Wired everything together for the MVP
 6/4
 Cleaned up UI
 Adjusted to using the interface rather than concrete impl
+
+6/5
+Additional javadocs and tests
+Some cleanup
