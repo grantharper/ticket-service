@@ -23,6 +23,11 @@ public class Row {
 	 * list of all the seats in the row
 	 */
 	private Map<Integer, Seat> seats = new HashMap<>();
+	
+	/**
+	 * venue where the row is located
+	 */
+	private Venue venue;
 
 	/**
 	 * instantiates a row in a given venue
@@ -32,11 +37,12 @@ public class Row {
 	 * @param rowId
 	 *            the unique identifier for the row
 	 */
-	public Row(final int venueId, final int rowId, final int numSeats) {
+	public Row(final int venueId, final int rowId, final int numSeats, Venue venue) {
 		this.venueId = venueId;
 		this.rowId = rowId;
+		this.venue = venue;
 		for (int i = 0; i < numSeats; i++) {
-			this.seats.put(i + 1, new Seat(venueId, rowId, i + 1));
+			this.seats.put(i + 1, new Seat(venueId, rowId, i + 1, venue));
 		}
 	}
 

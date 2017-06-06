@@ -42,6 +42,11 @@ public class Seat {
 	private String customerReservationEmail;
 
 	/**
+	 * venue where the seat is located
+	 */
+	private Venue venue;
+	
+	/**
 	 * Instantiation of the seat
 	 * 
 	 * @param seatRow
@@ -49,10 +54,11 @@ public class Seat {
 	 * @param seatNum
 	 *            the number of the seat
 	 */
-	public Seat(int venueId, int rowId, int seatId) {
+	public Seat(int venueId, int rowId, int seatId, Venue venue) {
 		this.venueId = venueId;
 		this.rowId = rowId;
 		this.seatId = seatId;
+		this.venue = venue;
 	}
 
 	/**
@@ -78,7 +84,7 @@ public class Seat {
 	public boolean isHeld() {
 		if (holdTime == null) {
 			return false;
-		} else if (holdTime.plus(Venue.HOLD_DURATION).isBefore(LocalDateTime.now())) {
+		} else if (holdTime.plus(venue.getHoldDuration()).isBefore(LocalDateTime.now())) {
 			return false;
 		} else {
 			return true;

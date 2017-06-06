@@ -14,10 +14,17 @@ public class SeatTest {
 
 	private Seat seat;
 	private String customerEmail = "email@email.com";
+	private Venue venue;
+	private double seatHoldSeconds;
+	private long holdExpireSleepMillis;
+	
 
 	@Before
 	public void setUp() {
-		seat = new Seat(1, 1, 1);
+		seatHoldSeconds = 0.1;
+		venue = new Venue(1, 10, 10, seatHoldSeconds);
+		holdExpireSleepMillis = venue.getHoldDuration().toMillis() + 100;
+		seat = new Seat(1, 1, 1, venue);
 	}
 
 	@Test
@@ -25,7 +32,7 @@ public class SeatTest {
 		assertNull(seat.getHoldTime());
 		seat.placeHold();
 		assertNotNull(seat.getHoldTime());
-		Thread.sleep(2000);
+		Thread.sleep(holdExpireSleepMillis);
 		assertTrue(LocalDateTime.now().isAfter(seat.getHoldTime()));
 	}
 
@@ -37,7 +44,7 @@ public class SeatTest {
 		seat.placeHold();
 		assertTrue(seat.isHeld());
 		assertFalse(seat.isAvailable());
-		Thread.sleep(Venue.HOLD_DURATION.toMillis());
+		Thread.sleep(holdExpireSleepMillis);
 		assertFalse(seat.isHeld());
 		assertTrue(seat.isAvailable());
 

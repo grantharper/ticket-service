@@ -61,9 +61,14 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	 */
 	private VenueTicketService venue;
 	
-	
+	/**
+	 * the terminal object used to issue prompts and read user input
+	 */
 	private TextTerminal terminal;
 	
+	/**
+	 * properties to allow modification to terminal settings at run time
+	 */
 	private TerminalProperties props;
 	
 	/**
@@ -88,10 +93,11 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 			int venueId = Integer.parseInt(appProperties.get("venue.id"));
 			int venueRows = Integer.parseInt(appProperties.get("venue.rows"));
 			int venueSeatsPerRow = Integer.parseInt(appProperties.get("venue.seatsPerRow"));
-			venue = new Venue(venueId, venueRows, venueSeatsPerRow);
+			int venueSeatHoldSeconds = Integer.parseInt(appProperties.get("venue.seatHoldSeconds"));
+			venue = new Venue(venueId, venueRows, venueSeatsPerRow, venueSeatHoldSeconds);
 		} catch(Exception e){
-			LOGGER.error("Invalid properties found. Building simple venue");
-			venue = new Venue(1, 10, 20);
+			LOGGER.error("Invalid properties found. Building simple venue of 10 rows, 20 seats per row, and a hold duration of 60 seconds");
+			venue = new Venue(1, 10, 20, 60);
 		}
 		
 	}
@@ -135,7 +141,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 					resetPromptColor();
 					printLineBreak();
 					break;
-				} else if (menu.equals(MainMenu.SEATS_AVAILABLE)) {
+				} else if (menu.equals(MainMenu.NUMBER_OF_SEATS_AVAILABLE)) {
 
 					int remainingSeats = venue.numSeatsAvailable();
 					changeToImportantColor();
@@ -157,7 +163,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 						changeToImportantColor();
 						if(seatHold != null){
 							terminal.printf("Held %d seats\n\n", numberOfSeatsRequested);
-							terminal.print("Seat hold will expire in " + (Venue.HOLD_DURATION.toMillis() / 1000) + " seconds.\n\n");
+							terminal.print("Seat hold will expire in " + seatHold.secondsToExpiration() + ".\n\n");
 						}else{
 							terminal.println("Unable to hold seats. Not enough remaining seats in the venue");
 						}

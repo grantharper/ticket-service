@@ -2,6 +2,7 @@ package com.ticket.domain;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -27,7 +28,7 @@ public class Venue implements VenueTicketService {
 	/**
 	 * the hold duration for all venues in this application
 	 */
-	public static final Duration HOLD_DURATION = Duration.ofSeconds(10);
+	public final Duration holdDuration;
 
 	/**
 	 * the unique identifier for the venue
@@ -52,12 +53,12 @@ public class Venue implements VenueTicketService {
 	/**
 	 * number of rows in the venue
 	 */
-	private int numRows;
+	private final int numRows;
 	
 	/**
 	 * number of seats per row in the venue
 	 */
-	private int numSeatsPerRow;
+	private final int numSeatsPerRow;
 
 
 	/**
@@ -70,13 +71,13 @@ public class Venue implements VenueTicketService {
 	 * @param numSeatsPerRow
 	 *            number of seats per row in the venue
 	 */
-	public Venue(int venueId, int numRows, int numSeatsPerRow) {
+	public Venue(int venueId, int numRows, int numSeatsPerRow, double seatHoldSeconds) {
 		this.venueId = venueId;
 		this.numRows = numRows;
 		this.numSeatsPerRow = numSeatsPerRow;
-		
+		this.holdDuration = Duration.of(Math.round(seatHoldSeconds * 1000), ChronoUnit.MILLIS);
 		for (int i = 1; i <= numRows; i++) {
-			this.rows.put(i, new Row(venueId, i, numSeatsPerRow));
+			this.rows.put(i, new Row(venueId, i, numSeatsPerRow, this));
 		}
 	}
 	
@@ -159,7 +160,7 @@ public class Venue implements VenueTicketService {
 		}
 
 		// populate the SeatHold with the list of seats and customer info and
-		SeatHold seatHold = new SeatHold(heldSeats, customerEmail, LocalDateTime.now().plus(HOLD_DURATION));
+		SeatHold seatHold = new SeatHold(heldSeats, customerEmail, LocalDateTime.now().plus(this.holdDuration));
 		// add it to the list of venue seat holds
 		this.seatHolds.put(seatHold.getSeatHoldId(), seatHold);
 		// return the seat hold
@@ -204,33 +205,6 @@ public class Venue implements VenueTicketService {
 		return seatRequests;
 	}
 
-	// attempt at optimization
-	private List<Seat> holdSeatsOptimized(int totalSeatsRequested) {
-		List<Seat> heldSeats = new ArrayList<>(totalSeatsRequested);
-		Iterator<Entry<Integer, Row>> it = rows.entrySet().iterator();
-
-		int groupSeatsRequested = totalSeatsRequested;
-		int numGroups = 1;
-
-		while (heldSeats.size() < totalSeatsRequested) {
-			while (it.hasNext() && heldSeats.size() < totalSeatsRequested) {
-				List<Seat> temp = null;
-				Row currentRow = it.next().getValue();
-				for (int i = 0; i < numGroups; i++) {
-					temp = currentRow.holdSeats(groupSeatsRequested);
-					if (temp == null) {
-						break;
-					} else {
-						heldSeats.addAll(temp);
-					}
-				}
-
-			}
-
-		}
-
-		return heldSeats;
-	}
 
 	@Override
 	public String reserveSeats(int seatHoldId, String customerEmail) {
@@ -254,17 +228,22 @@ public class Venue implements VenueTicketService {
 		return reservation.getConfirmationId();
 	}
 
+	
+	public static final String SEAT_MAP_PRINT_ERROR_MSG = "Seat map is too large to display. Only maps of 40x40 or smaller can be displayed.\n\n";
 	/**
 	 * prints a visual representation of the venue's rows and seats as well as their state
 	 * A = available, H = held, R = reserved
 	 */
 	public String printVenue() {
+		//decide whether to print it to the console based on the size of the venue
+		if(this.numRows > 40 || this.numSeatsPerRow > 40){
+			return SEAT_MAP_PRINT_ERROR_MSG;
+		}
 		Iterator<Entry<Integer, Row>> it = rows.entrySet().iterator();
 		String venueModel = "";
 		while (it.hasNext()) {
 			venueModel += it.next().getValue().print() + "\n";
 		}
-		LOGGER.info(venueModel);
 		venueModel = "VENUE SEAT MAP \n\nA = Available, H = Held, R = Reserved \n\n" + venueModel + "\n\n";
 		return venueModel;
 	}
@@ -285,7 +264,25 @@ public class Venue implements VenueTicketService {
 		return seatReservations;
 	}
 
-	
+	public long getSeatHoldSeconds(){
+		//discarding the fraction is ok since the user doesn't care about fractions of seconds for the hold
+		return (holdDuration.toMillis() / 1000);
+	}
+
+
+	public Duration getHoldDuration() {
+		return holdDuration;
+	}
+
+
+	public int getNumRows() {
+		return numRows;
+	}
+
+
+	public int getNumSeatsPerRow() {
+		return numSeatsPerRow;
+	}
 	
 	
 }

@@ -7,12 +7,37 @@ import java.util.List;
 
 public class SeatHold {
 
+	/**
+	 * the next id for the seat hold
+	 */
 	private static int nextSeatHoldId = 1111;
+	
+	/**
+	 * the unique id for the seat hold
+	 */
 	private final int seatHoldId;
+	
+	/**
+	 * the list of seats that are held by the seat hold
+	 */
 	private final List<Seat> seatsHeld;
+	
+	/**
+	 * the email of the customer who owns the seat hold
+	 */
 	private final String customerEmail;
+	
+	/**
+	 * the time when the seat hold will expire
+	 */
 	private final LocalDateTime holdExpiration;
 
+	/**
+	 * instantiation of the seat hold
+	 * @param seatsHeld the seats held
+	 * @param customerEmail the email of the customer
+	 * @param holdExpiration the time when the seat hold will expire
+	 */
 	public SeatHold(List<Seat> seatsHeld, String customerEmail, LocalDateTime holdExpiration) {
 		this.seatHoldId = nextSeatHoldId;
 		nextSeatHoldId++;
@@ -21,22 +46,9 @@ public class SeatHold {
 		this.holdExpiration = holdExpiration;
 	}
 
-	public int getSeatHoldId() {
-		return seatHoldId;
-	}
-
-	public List<Seat> getSeatsHeld() {
-		return seatsHeld;
-	}
-
-	public String getCustomerEmail() {
-		return customerEmail;
-	}
-
-	public LocalDateTime getHoldExpiration() {
-		return holdExpiration;
-	}
-	
+	/**
+	 * @return whether the seat hold is expired
+	 */
 	public boolean isExpired(){
 		if(LocalDateTime.now().isAfter(holdExpiration)){
 			return true;
@@ -44,9 +56,49 @@ public class SeatHold {
 		return false;
 	}
 	
-	public String timeToExpiration(){
+	/**
+	 * @return the number of seconds until seat hold expiration truncated to the nearest second
+	 */
+	public String secondsToExpiration(){
 		Duration timeToExpire = Duration.between(LocalDateTime.now(), holdExpiration);
-		return "" + (timeToExpire.toMillis() / 1000) + " seconds";
+		if(timeToExpire.toMillis() > 0){
+			return "" + (timeToExpire.toMillis() / 1000) + " seconds";
+		}
+		return "0 seconds";
+		
 	}
+	
+	
+	/**
+	 * @return the seatHoldId
+	 */
+	public int getSeatHoldId() {
+		return seatHoldId;
+	}
+
+
+	/**
+	 * @return the seatsHeld
+	 */
+	public List<Seat> getSeatsHeld() {
+		return seatsHeld;
+	}
+
+
+	/**
+	 * @return the customerEmail
+	 */
+	public String getCustomerEmail() {
+		return customerEmail;
+	}
+
+
+	/**
+	 * @return the holdExpiration
+	 */
+	public LocalDateTime getHoldExpiration() {
+		return holdExpiration;
+	}
+
 
 }

@@ -12,12 +12,17 @@ public class RowTest {
 
 	private Row smallRow;
 	private Row bigRow;
-	private long holdExpireSleepMillis = Venue.HOLD_DURATION.toMillis() + 1000;
+	private Venue venue;
+	private double seatHoldSeconds;
+	private long holdExpireSleepMillis;
 
 	@Before
 	public void setUp() {
-		smallRow = new Row(1, 1, 10);
-		bigRow = new Row(1, 1, 100);
+		seatHoldSeconds = 0.1;
+		venue = new Venue(1, 10, 10, seatHoldSeconds);
+		holdExpireSleepMillis = venue.getHoldDuration().toMillis() + 100;
+		smallRow = new Row(1, 1, 10, venue);
+		bigRow = new Row(1, 1, 100, venue);
 	}
 	
 	
