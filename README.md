@@ -11,7 +11,7 @@ This is an application designed to allow users to discover, temporarily hold, an
 
 ### Assumptions
 1. State will not be persisted beyond the process life of the application
-2. Users will interface with the application through command line prompts
+2. At most one user will interface with the application through command line prompts at a time
 3. The "best available" seats are seats that fulfill the following requirements in order:
 	1. grouped together if at all possible
 	2. closest to the stage
@@ -27,3 +27,10 @@ This is an application designed to allow users to discover, temporarily hold, an
 - `cd ticket-service`
 - `mvn clean install`
 - `mvn exec:java`
+
+### Proposed next steps
+- Update logic to ensure thread safety and allow for a web interface with multiple users
+	- place temporary holds on seats while they are being accessed
+	- finalize hold on seats once they have all been discovered
+- Establish persistance
+- Create web interface

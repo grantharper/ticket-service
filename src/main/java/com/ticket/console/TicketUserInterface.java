@@ -95,6 +95,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	 */
 	public void loadVenue(){
 		try{
+			LOGGER.info("Retrieving settings from application.properties file");
 			int venueId = Integer.parseInt(appProperties.get("venue.id"));
 			int venueRows = Integer.parseInt(appProperties.get("venue.rows"));
 			int venueSeatsPerRow = Integer.parseInt(appProperties.get("venue.seatsPerRow"));
@@ -114,6 +115,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	 */
 	public void accept(TextIO textIO, String initData) {
 
+		LOGGER.info("Accepting user input via the terminal");
 		while (true) {
 			terminal.println("Welcome to the Venue!\n Use ctrl-c to quit\n");
 			printLineBreak();
@@ -125,6 +127,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 
 			customerEmail = userEmailReader.read("Please provide your email address to log in: ");
 			customerLoggedIn = true;
+			LOGGER.info("Customer with email " + customerEmail + " has logged in");
 
 			insertWaitTime();
 			changeToImportantColor();
@@ -142,6 +145,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 				insertWaitTime();
 				
 				if (menu.equals(MainMenu.LOGOUT)) {
+					LOGGER.info("Customer " + customerEmail + " selected Logout");
 					insertWaitTime();
 					changeToImportantColor();
 					terminal.println("You have successfully logged out.");
@@ -149,7 +153,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 					printLineBreak();
 					break;
 				} else if (menu.equals(MainMenu.NUMBER_OF_SEATS_AVAILABLE)) {
-
+					LOGGER.info("Customer " + customerEmail + " selected Number of Seats Available");
 					int remainingSeats = venue.numSeatsAvailable();
 					changeToImportantColor();
 					terminal.printf("Remaining Seats: %d \n\n", remainingSeats);
@@ -157,6 +161,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 					insertWaitTime();
 
 				} else if(menu.equals(MainMenu.SELECT_SEATS)) {
+					LOGGER.info("Customer " + customerEmail + " selected Select Seats");
 					numberOfSeatsRequested = numberOfSeatsRequestedReader.read("Number of seats requested: ");
 
 					if (numberOfSeatsRequested > 0) {
@@ -167,11 +172,14 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 						
 
 						seatHold = venue.findAndHoldSeats(numberOfSeatsRequested, customerEmail);
+						
 						changeToImportantColor();
 						if(seatHold != null){
+							LOGGER.info("Customer " + customerEmail + " has held " + numberOfSeatsRequested + " seats");
 							terminal.printf("Held %d seats\n\n", numberOfSeatsRequested);
 							terminal.print("Seat hold will expire in " + seatHold.secondsToExpiration() + ".\n\n");
 						}else{
+							LOGGER.info("Unable to hold seats due to not enough remaining");
 							terminal.println("Unable to hold seats. Not enough remaining seats in the venue");
 						}
 						resetPromptColor();
@@ -221,7 +229,9 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	 */
 	private void printVenueMap(){
 		if(displayVenueMap){
-			terminal.print(venue.printVenue());
+			String venueMap = venue.printVenue();
+			LOGGER.debug(venueMap);
+			terminal.print(venueMap);
 		}
 	}
 	

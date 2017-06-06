@@ -79,6 +79,20 @@ public class VenueTest {
 	}
 	
 	@Test
+	public void testFindRowEndsAndMaxOut(){
+		int almostCompleteRowReservations = venueSeatsPerRow - 2;
+		
+		for(int i = 0; i < venueRows; i++){
+			venue.findAndHoldSeats(almostCompleteRowReservations, customerEmail);
+		}
+		assertEquals(totalVenueSeats - almostCompleteRowReservations * venueRows, venue.numSeatsAvailable());
+		//after the venue is almost completely full request the remaining seats in one big request
+		venue.findAndHoldSeats(totalVenueSeats - almostCompleteRowReservations * venueRows, customerEmail);
+		assertEquals(0, venue.numSeatsAvailable());
+		
+	}
+	
+	@Test
 	public void testIncrementallyMaxOut(){
 		int reserveSeats = 2;
 		//reserve all seats by 2s

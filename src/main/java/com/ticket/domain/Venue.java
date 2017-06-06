@@ -90,6 +90,7 @@ public class Venue implements VenueTicketService {
 	 */
 	@Override
 	public int numSeatsAvailable() {
+		LOGGER.info("Retrieving number of available seats in the venue");
 		Iterator<Entry<Integer, Row>> it = rows.entrySet().iterator();
 		int seatsAvailableInVenue = 0;
 		while (it.hasNext()) {
@@ -104,9 +105,11 @@ public class Venue implements VenueTicketService {
 	 */
 	@Override
 	public SeatHold findAndHoldSeats(int numSeatsRequested, String customerEmail) {
-
+		LOGGER.info("Attempting to find and hold " + numSeatsRequested + " seats in the venue");
+		
 		// case where there aren't enough remaining seats
 		if (numSeatsRequested > numSeatsAvailable()) {
+			LOGGER.info("Not enough remaining seats in the venue");
 			return null;
 		}
 
@@ -117,55 +120,51 @@ public class Venue implements VenueTicketService {
 		//case where the number of seats requested is larger than the size of a complete row
 		//divide the request in groups of complete rows 
 		if(numSeatsRequested > numSeatsPerRow){
+			LOGGER.debug("Request is larger than the number of seats per row");
 			seatRequests = divideSeatRequestsIntoCompleteRows(numSeatsRequested);
 		}
 		//case where the number of seats requested is smaller than the size of a complete row
 		else{
+			LOGGER.debug("Request is smaller than the number of seats per row");
 			seatRequests.add(numSeatsRequested);
 		}
 
-		
+		//attempt to find seats while the list of located seats is smaller than the number requested
 		while (heldSeats.size() < numSeatsRequested) {
 
+			//loop through each divided up request and hold available seats
 			for (int i = 0; i < seatRequests.size(); i++ ) {
 				List<Seat> temp = holdSeats(seatRequests.get(i));
 				if (!temp.isEmpty()) {
+					//if seats were held, add them to the heldSeats list
 					heldSeats.addAll(temp);
+					//remove this request from the seatRequests
 					seatRequests.remove(i);
+					//exit if the total request has been fulfilled
 					if (heldSeats.size() >= numSeatsRequested) {
 						break;
-					} 
+					}
+					//account for the removal of the request from the list by decrementing the counter
 					i--;
 				}
-
-				// else{
-				// //if the seats return null, the group will need to be halved
-				// since there are no more remaining rows with this many seats
-				// break;
-				// }
 			}
-
-			if (heldSeats.size() >= numSeatsRequested) {
-				break;
-			} else {
-				// divide up the requests into twice the number of previous
-				// groups with half the size
-				List<Integer> updatedSeatRequests = new ArrayList<>();
-				for (Integer request : seatRequests) {
-					int halvedRequest = request / 2;
-					if ((request % 2) == 1) {
-						updatedSeatRequests.add(halvedRequest + 1);
-					} else {
-						updatedSeatRequests.add(halvedRequest);
-					}
-					// add the potentially smaller request to the list last so
-					// we find bigger groups together first
+			
+			//if the seat requests could not all be fulfilled, divide the remaining requests by two and attempt to fulfill the smaller grouped requests
+			List<Integer> updatedSeatRequests = new ArrayList<>();
+			for (Integer request : seatRequests) {
+				int halvedRequest = request / 2;
+				if ((request % 2) == 1) {
+					updatedSeatRequests.add(halvedRequest + 1);
+				} else {
 					updatedSeatRequests.add(halvedRequest);
-
 				}
-				seatRequests = updatedSeatRequests;
+				// add the potentially smaller request to the list last so
+				// we find bigger groups together first
+				updatedSeatRequests.add(halvedRequest);
 
 			}
+			seatRequests = updatedSeatRequests;
+
 		}
 
 		// populate the SeatHold with the list of seats and customer info and
