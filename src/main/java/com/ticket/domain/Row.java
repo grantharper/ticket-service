@@ -7,17 +7,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Row {
+	
+	public static final Logger LOGGER = LoggerFactory.getLogger(Row.class);
 
 	/**
 	 * unique identifier for the row
 	 */
 	private final int rowId;
-
-	/**
-	 * unique identifier for the venue where the row is located
-	 */
-	private final int venueId;
 
 	/**
 	 * list of all the seats in the row
@@ -28,6 +28,11 @@ public class Row {
 	 * venue where the row is located
 	 */
 	private Venue venue;
+	
+	/**
+	 * number of seats in the row
+	 */
+	private final int numSeats;
 
 	/**
 	 * instantiates a row in a given venue
@@ -37,17 +42,21 @@ public class Row {
 	 * @param rowId
 	 *            the unique identifier for the row
 	 */
-	public Row(final int venueId, final int rowId, final int numSeats, Venue venue) {
-		this.venueId = venueId;
+	public Row(final int rowId, final int numSeats, Venue venue) {
 		this.rowId = rowId;
 		this.venue = venue;
-		for (int i = 0; i < numSeats; i++) {
-			this.seats.put(i + 1, new Seat(venueId, rowId, i + 1, venue));
+		this.numSeats = numSeats;
+		for (int i = 1; i <= numSeats; i++) {
+			this.seats.put(i, new Seat(i, venue, this));
 		}
 	}
 
+	/**
+	 * loops through the seats in the row to determine how many are available
+	 * @return number of available seats
+	 */
 	public int numSeatsAvailable() {
-		// TODO: consider optimization
+
 		Iterator<Entry<Integer, Seat>> it = seats.entrySet().iterator();
 		int seatsAvailableInRow = 0;
 		while (it.hasNext()) {
@@ -85,7 +94,7 @@ public class Row {
 		}
 
 		// case where we can't start from the middle. Start with whichever side
-		// has the first available seat
+		// has the first available seat since this side will have the most seats available
 		for (int i = 2; i <= seats.size(); i++) {
 
 			if (seats.get(i).isAvailable()) {
@@ -141,6 +150,10 @@ public class Row {
 		}
 	}
 
+	/**
+	 * prints a map of the seats in the row
+	 * @return string representation of the row
+	 */
 	public String print() {
 		Iterator<Entry<Integer, Seat>> it = seats.entrySet().iterator();
 		String rowString = "";
@@ -149,12 +162,28 @@ public class Row {
 			// takes into account the odds being on the left and the evens being
 			// on the right
 			if ((currentSeat.getSeatId()) % 2 == 1) {
-				rowString = currentSeat.print() + rowString;
+				rowString = " " + currentSeat.print() + rowString;
 			} else {
-				rowString = rowString + currentSeat.print();
+				rowString = rowString + currentSeat.print() + " ";
 			}
 		}
 		return rowString;
 	}
+
+	/**
+	 * @return the rowId
+	 */
+	public int getRowId() {
+		return rowId;
+	}
+
+	/**
+	 * @return the numSeats
+	 */
+	public int getNumSeats() {
+		return numSeats;
+	}
+	
+	
 
 }

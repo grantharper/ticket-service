@@ -1,5 +1,8 @@
 package com.ticket.service;
 
+/**
+ * extension of the Ticket Service which includes the ability to print a venue map
+ */
 public interface VenueTicketService extends TicketService{
 
 	/**

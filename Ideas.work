@@ -95,17 +95,14 @@ Execution of application from command line
 mvn clean install
 mvn exec:java
 
-Research needed
-Using interfaces to make the interface between the ui and the venue less coupled
-
 
 Next Steps
-Write better java docs
-Clean up the UI so that it looks better - done
-Externalize some constants to property file - done, but should I be using Spring for dependency injection?
-Use the TicketService interface or extend it for the TicketUserInterface class to use - done
-Fix the divide by two issue
-
+Make sure every class and method has java docs
+Add logger to every class and log important information
+Hold timeout disparity (have a final commit action on the seat holds)
+Determine way to access holds after logout
+Deal with persistance annotations and objects owning other objects
+Look into unit tests of the TicketUserInterface - may need Mockito or another mock framework
 
 Potential Issues
 If the application is running slowly, seat hold times could be different for seats accessed in different groups

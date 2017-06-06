@@ -1,5 +1,8 @@
 package com.ticket.console;
 
+/**
+ * enum to support the main menu for the user interface
+ */
 public enum MainMenu {
 
 	NUMBER_OF_SEATS_AVAILABLE(1, "Find out how many seats are still available"), 

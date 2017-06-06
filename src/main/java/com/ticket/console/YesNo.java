@@ -1,5 +1,8 @@
 package com.ticket.console;
 
+/**
+ * enum to support the menu for confirmation of seat selection
+ */
 public enum YesNo {
 
 	YES(1, "Yes"), NO(0, "No");
@@ -12,6 +15,9 @@ public enum YesNo {
 		this.label = label;
 	}
 	
+	/**
+	 * @return the boolean value of the yes/no stored
+	 */
 	boolean booleanValueOf(){
 		if(code == 1){
 			return true;

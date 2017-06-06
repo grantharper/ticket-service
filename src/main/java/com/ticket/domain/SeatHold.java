@@ -5,8 +5,16 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * describes the information associated with a seat hold placed by a customer
+ */
 public class SeatHold {
 
+	public static final Logger LOGGER = LoggerFactory.getLogger(SeatHold.class);
+	
 	/**
 	 * the next id for the seat hold
 	 */

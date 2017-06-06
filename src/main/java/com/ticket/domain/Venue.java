@@ -21,6 +21,10 @@ import com.util.AppProperties;
  * It will allow for seat reservations
  *
  */
+/**
+ * @author emers
+ *
+ */
 public class Venue implements VenueTicketService {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(Venue.class);
@@ -77,11 +81,13 @@ public class Venue implements VenueTicketService {
 		this.numSeatsPerRow = numSeatsPerRow;
 		this.holdDuration = Duration.of(Math.round(seatHoldSeconds * 1000), ChronoUnit.MILLIS);
 		for (int i = 1; i <= numRows; i++) {
-			this.rows.put(i, new Row(venueId, i, numSeatsPerRow, this));
+			this.rows.put(i, new Row(i, numSeatsPerRow, this));
 		}
 	}
 	
-
+	/**
+	 * see TicketService for method summary
+	 */
 	@Override
 	public int numSeatsAvailable() {
 		Iterator<Entry<Integer, Row>> it = rows.entrySet().iterator();
@@ -93,6 +99,9 @@ public class Venue implements VenueTicketService {
 
 	}
 
+	/**
+	 * see TicketService for method summary
+	 */
 	@Override
 	public SeatHold findAndHoldSeats(int numSeatsRequested, String customerEmail) {
 
@@ -205,7 +214,9 @@ public class Venue implements VenueTicketService {
 		return seatRequests;
 	}
 
-
+	/**
+	 * see TicketService for method summary
+	 */
 	@Override
 	public String reserveSeats(int seatHoldId, String customerEmail) {
 
@@ -228,8 +239,11 @@ public class Venue implements VenueTicketService {
 		return reservation.getConfirmationId();
 	}
 
-	
+	/**
+	 * standard error message when the venue seat map is too large to display
+	 */
 	public static final String SEAT_MAP_PRINT_ERROR_MSG = "Seat map is too large to display. Only maps of 40x40 or smaller can be displayed.\n\n";
+	
 	/**
 	 * prints a visual representation of the venue's rows and seats as well as their state
 	 * A = available, H = held, R = reserved
@@ -248,38 +262,62 @@ public class Venue implements VenueTicketService {
 		return venueModel;
 	}
 
+	/**
+	 * @return the id of the venue
+	 */
 	public int getVenueId() {
 		return venueId;
 	}
 
+	/**
+	 * @return the rows of the venue
+	 */
 	public Map<Integer, Row> getRows() {
 		return rows;
 	}
 
+	/**
+	 * @return the seat holds in the venue
+	 */
 	public Map<Integer, SeatHold> getSeatHolds() {
 		return seatHolds;
 	}
 
+	/**
+	 * @return the seat reservations in the venue
+	 */
 	public Map<String, SeatReservation> getSeatReservations() {
 		return seatReservations;
 	}
 
+	/**
+	 * @return the remaining seconds on the seat hold
+	 */
 	public long getSeatHoldSeconds(){
 		//discarding the fraction is ok since the user doesn't care about fractions of seconds for the hold
 		return (holdDuration.toMillis() / 1000);
 	}
 
 
+	/**
+	 * @return the duration of the holds in the venue
+	 */
 	public Duration getHoldDuration() {
 		return holdDuration;
 	}
 
 
+	/**
+	 * @return the number of rows in the venue
+	 */
 	public int getNumRows() {
 		return numRows;
 	}
 
 
+	/**
+	 * @return the number of seats per row in the venue
+	 */
 	public int getNumSeatsPerRow() {
 		return numSeatsPerRow;
 	}

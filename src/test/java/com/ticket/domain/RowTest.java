@@ -21,8 +21,8 @@ public class RowTest {
 		seatHoldSeconds = 0.1;
 		venue = new Venue(1, 10, 10, seatHoldSeconds);
 		holdExpireSleepMillis = venue.getHoldDuration().toMillis() + 100;
-		smallRow = new Row(1, 1, 10, venue);
-		bigRow = new Row(1, 1, 100, venue);
+		smallRow = new Row(1, 10, venue);
+		bigRow = new Row(1, 100, venue);
 	}
 	
 	
@@ -102,6 +102,13 @@ public class RowTest {
 		Thread.sleep(holdExpireSleepMillis);
 
 		assertEquals(100, bigRow.numSeatsAvailable());
+	}
+	
+	@Test
+	public void testPrintRow(){
+		String result = smallRow.print();
+		//size of row is twice size of number of seats
+		assertEquals(smallRow.getNumSeats() * 2, result.length());
 	}
 
 }

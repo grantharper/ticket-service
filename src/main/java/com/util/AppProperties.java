@@ -10,22 +10,50 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * utility class to read and store property (key, value) files for use by the application
+ */
 public class AppProperties {
 	
 	public static final Logger LOGGER = LoggerFactory.getLogger(AppProperties.class);
+	
+	/**
+	 * properties file name
+	 */
+	public static final String DEFAULT_FILE_NAME = "application.properties";
 
+	/**
+	 * map of the application's properties
+	 */
 	private Map<String, String> properties = new HashMap<String, String>();
 
+	/**
+	 * properties object 
+	 */
 	private Properties prop = new Properties();
+	
+	/**
+	 * input stream to read properties file
+	 */
 	private InputStream input = null;
+	
+	/**
+	 * No arg constructor that uses the default name for the properties file
+	 */
+	public AppProperties(){
+		this(DEFAULT_FILE_NAME);
+	}
 
-	public AppProperties() {
+	/**
+	 * More generic constructor which takes in any file name
+	 * @param fileName the file name with extension included where the properties are located
+	 */
+	public AppProperties(String fileName) {
 		try {
 
-			String filename = "application.properties";
-			input = getClass().getClassLoader().getResourceAsStream(filename);
+			input = getClass().getClassLoader().getResourceAsStream(fileName);
 			if (input == null) {
-				System.out.println("Sorry, unable to find " + filename);
+				System.out.println("Sorry, unable to find " + fileName);
 				return;
 			}
 
@@ -53,6 +81,9 @@ public class AppProperties {
 
 	}
 
+	/**
+	 * @return map of properties
+	 */
 	public Map<String, String> getProperties() {
 		return properties;
 	}

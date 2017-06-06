@@ -1,25 +1,18 @@
 package com.ticket.domain;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * Describes a seat in a venue and whether or not it is available to be held or
- * reserved
+ * Describes a seat in a venue and its state regarding whether it is available, on hold, or reserved
  *
  */
 public class Seat {
-
-	/**
-	 * the venue where the seat is located
-	 */
-	private final int venueId;
-
-	/**
-	 * the row where the seat is located which cannot change (e.g. A, B)
-	 */
-	private final int rowId;
-
+	
+	public static final Logger LOGGER = LoggerFactory.getLogger(Seat.class);
+	
 	/**
 	 * the unique identifier for the seat
 	 */
@@ -44,7 +37,12 @@ public class Seat {
 	/**
 	 * venue where the seat is located
 	 */
-	private Venue venue;
+	private final Venue venue;
+	
+	/**
+	 * row where the seat is located
+	 */
+	private final Row row;
 	
 	/**
 	 * Instantiation of the seat
@@ -54,11 +52,10 @@ public class Seat {
 	 * @param seatNum
 	 *            the number of the seat
 	 */
-	public Seat(int venueId, int rowId, int seatId, Venue venue) {
-		this.venueId = venueId;
-		this.rowId = rowId;
+	public Seat(int seatId, final Venue venue, final Row row) {
 		this.seatId = seatId;
 		this.venue = venue;
+		this.row = row;
 	}
 
 	/**
@@ -92,49 +89,80 @@ public class Seat {
 
 	}
 
+	/**
+	 * code for the seat being available
+	 */
+	public static final String SEAT_AVAILABLE_CODE = "A";
+	
+	/**
+	 * code for the seat as held
+	 */
+	public static final String SEAT_HELD_CODE = "H";
+
+	/**
+	 * code for the seat being available
+	 */
+	public static final String SEAT_RESERVED_CODE = "R";
+	
+	/**
+	 * 
+	 * @return string representation of the state of the seat
+	 */
+	public String print() {
+		if (this.isReserved()) {
+			return SEAT_RESERVED_CODE;
+		} else if (this.isHeld()) {
+			return SEAT_HELD_CODE;
+		} else {
+			return SEAT_AVAILABLE_CODE;
+		}
+	}
+	
+	/**
+	 * places a hold on the seat by establishing the time when the seat was held
+	 * @return time when the seat was held
+	 */
+	//TODO: change this method to use a passed in time (maybe SeatHold object) so that there is not disparity between the hold times
 	public LocalDateTime placeHold() {
 		this.holdTime = LocalDateTime.now();
 		return holdTime;
 	}
 
+	/**
+	 * reserves the seat for the customer email passed in
+	 * @param customerEmail email of the customer
+	 */
 	public void reserveSeat(String customerEmail) {
 		this.reserved = true;
 		this.customerReservationEmail = customerEmail;
 	}
 
-	public boolean isReserved() {
-		return reserved;
-	}
-
-	public LocalDateTime getHoldTime() {
-		return holdTime;
-	}
-
-	public int getVenueId() {
-		return venueId;
-	}
-
-	public int getRowId() {
-		return rowId;
-	}
-
+	/**
+	 * @return the seatId
+	 */
 	public int getSeatId() {
 		return seatId;
 	}
 
-	public String getCustomerReservationEmail() {
-		return customerReservationEmail;
+	/**
+	 * @return the holdTime
+	 */
+	public LocalDateTime getHoldTime() {
+		return holdTime;
 	}
 
-	public String print() {
-		if (this.isReserved()) {
-			return "R ";
-		} else if (this.isHeld()) {
-			return "H ";
-		} else {
-			return "A ";
-		}
+	/**
+	 * @return the reserved
+	 */
+	public boolean isReserved() {
+		return reserved;
+	}
 
+	/**
+	 * @return the customerReservationEmail
+	 */
+	public String getCustomerReservationEmail() {
+		return customerReservationEmail;
 	}
 
 }

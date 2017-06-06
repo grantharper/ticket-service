@@ -1,5 +1,6 @@
 package com.ticket.domain;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -15,6 +16,7 @@ public class SeatTest {
 	private Seat seat;
 	private String customerEmail = "email@email.com";
 	private Venue venue;
+	private Row row;
 	private double seatHoldSeconds;
 	private long holdExpireSleepMillis;
 	
@@ -23,8 +25,9 @@ public class SeatTest {
 	public void setUp() {
 		seatHoldSeconds = 0.1;
 		venue = new Venue(1, 10, 10, seatHoldSeconds);
+		row = new Row(1, 10, venue);
 		holdExpireSleepMillis = venue.getHoldDuration().toMillis() + 100;
-		seat = new Seat(1, 1, 1, venue);
+		seat = new Seat(1, venue, row);
 	}
 
 	@Test
@@ -55,6 +58,15 @@ public class SeatTest {
 		seat.reserveSeat(customerEmail);
 		assertTrue(seat.isReserved());
 		assertFalse(seat.isAvailable());
+	}
+	
+	@Test
+	public void testPrintSeat(){
+		assertEquals(Seat.SEAT_AVAILABLE_CODE, seat.print());
+		seat.placeHold();
+		assertEquals(Seat.SEAT_HELD_CODE, seat.print());
+		seat.reserveSeat(customerEmail);
+		assertEquals(Seat.SEAT_RESERVED_CODE, seat.print());
 	}
 
 }

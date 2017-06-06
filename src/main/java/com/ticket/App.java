@@ -24,12 +24,17 @@ public class App {
 	
 	public static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 	
+	/**
+	 * main method for the application. Starts up the textIO terminal and allows for user interaction with the Ticket Service
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		LOGGER.info("Ticket Service starting up");
 		TextIO textIO = TextIoFactory.getTextIO();
 		
 		BiConsumer<TextIO, String> app = new TicketUserInterface(textIO);
 		
+		//accept user input
 		app.accept(textIO, null);
 
 	}

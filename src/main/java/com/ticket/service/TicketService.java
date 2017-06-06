@@ -2,6 +2,9 @@ package com.ticket.service;
 
 import com.ticket.domain.SeatHold;
 
+/**
+ * represents basic functionality for a service that allows for the discovery, hold, and reservation of seats in a venue
+ */
 public interface TicketService {
 
 	/**
