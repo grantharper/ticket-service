@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import com.ticket.domain.SeatHold;
 import com.ticket.domain.Venue;
-import com.ticket.service.TicketService;
 import com.ticket.service.VenueTicketService;
 import com.util.AppProperties;
 
@@ -31,6 +30,11 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	 */
 	private static final String EMAIL_REGEX = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
 
+	/**
+	 * regex to validate initial user input including the q quit command
+	 */
+	private static final String LOGIN_REGEX = "(^[q]$)|(" + EMAIL_REGEX + ")";
+	
 	/**
 	 * the main menu reader used to allow the user to interact with the venue ticket service
 	 */
@@ -82,7 +86,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	 */
 	public TicketUserInterface(TextIO textIO) {
 		this.mainMenuReader = textIO.newEnumInputReader(MainMenu.class);
-		this.userEmailReader = textIO.newStringInputReader().withPattern(EMAIL_REGEX);
+		this.userEmailReader = textIO.newStringInputReader().withPattern(LOGIN_REGEX);
 		this.numberOfSeatsRequestedReader = textIO.newIntInputReader().withMinVal(0);
 		this.confirmationReader = textIO.newEnumInputReader(YesNo.class);
 		this.terminal = textIO.getTextTerminal();
@@ -91,16 +95,25 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	}
 	
 	/**
+	 * constants for property file retrieval
+	 */
+	public static final String VENUE_ID_PROPERTY_KEY = "venue.id";
+	public static final String VENUE_ROWS_PROPERTY_KEY = "venue.rows";
+	public static final String VENUE_SEATS_PER_ROW_PROPERTY_KEY = "venue.seatsPerRow";
+	public static final String VENUE_SEAT_HOLD_SECONDS_PROPERTY_KEY = "venue.seatHoldSeconds";
+	public static final String VENUE_DISPLAY_MAP_PROPERTY_KEY = "venue.displayMap";
+	
+	/**
 	 * helper method to read the property file venue properties and instantiate the venue
 	 */
 	public void loadVenue(){
 		try{
 			LOGGER.info("Retrieving settings from application.properties file");
-			int venueId = Integer.parseInt(appProperties.get("venue.id"));
-			int venueRows = Integer.parseInt(appProperties.get("venue.rows"));
-			int venueSeatsPerRow = Integer.parseInt(appProperties.get("venue.seatsPerRow"));
-			int venueSeatHoldSeconds = Integer.parseInt(appProperties.get("venue.seatHoldSeconds"));
-			displayVenueMap = Boolean.parseBoolean(appProperties.get("venue.displayMap"));
+			int venueId = Integer.parseInt(appProperties.get(VENUE_ID_PROPERTY_KEY));
+			int venueRows = Integer.parseInt(appProperties.get(VENUE_ROWS_PROPERTY_KEY));
+			int venueSeatsPerRow = Integer.parseInt(appProperties.get(VENUE_SEATS_PER_ROW_PROPERTY_KEY));
+			int venueSeatHoldSeconds = Integer.parseInt(appProperties.get(VENUE_SEAT_HOLD_SECONDS_PROPERTY_KEY));
+			displayVenueMap = Boolean.parseBoolean(appProperties.get(VENUE_DISPLAY_MAP_PROPERTY_KEY));
 			venue = new Venue(venueId, venueRows, venueSeatsPerRow, venueSeatHoldSeconds);
 		} catch(Exception e){
 			LOGGER.error("Invalid properties found. Building simple venue of 10 rows, 20 seats per row, and a hold duration of 60 seconds");
@@ -117,7 +130,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 
 		LOGGER.info("Accepting user input via the terminal");
 		while (true) {
-			terminal.println("Welcome to the Venue!\n Use ctrl-c to quit\n");
+			terminal.println("Welcome to the Venue!");
 			printLineBreak();
 			insertWaitTime();
 			
@@ -125,7 +138,12 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 			String customerEmail;
 			int numberOfSeatsRequested;
 
-			customerEmail = userEmailReader.read("Please provide your email address to log in: ");
+			customerEmail = userEmailReader.read("Please provide your email address to log in or enter \"q\" to quit: \n");
+			if(customerEmail.equals("q")){
+				LOGGER.info("Customer provided quit command. Exiting");
+				terminal.dispose();
+				break;
+			}
 			customerLoggedIn = true;
 			LOGGER.info("Customer with email " + customerEmail + " has logged in");
 
@@ -194,8 +212,10 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 							insertWaitTime();
 							changeToImportantColor();
 							if(confirmationNumber != null){
+								LOGGER.info("Seat Selection confirmed");
 								terminal.printf("Success! Confirmation number: %s\n\n", confirmationNumber);
 							}else{
+								LOGGER.info("Seat Selection reservation failed");
 								terminal.println("Your seat hold has expired. Please try again.");
 							}
 							resetPromptColor();
@@ -259,6 +279,78 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	 */
 	private void printLineBreak(){
 		terminal.println("------------------------------------------------\n");
-	}	
+	}
+
+	/**
+	 * @return the logger
+	 */
+	public static Logger getLogger() {
+		return LOGGER;
+	}
+
+	/**
+	 * @return the emailRegex
+	 */
+	public static String getEmailRegex() {
+		return EMAIL_REGEX;
+	}
+
+	/**
+	 * @return the mainMenuReader
+	 */
+	public EnumInputReader<MainMenu> getMainMenuReader() {
+		return mainMenuReader;
+	}
+
+	/**
+	 * @return the userEmailReader
+	 */
+	public StringInputReader getUserEmailReader() {
+		return userEmailReader;
+	}
+
+	/**
+	 * @return the numberOfSeatsRequestedReader
+	 */
+	public IntInputReader getNumberOfSeatsRequestedReader() {
+		return numberOfSeatsRequestedReader;
+	}
+
+	/**
+	 * @return the confirmationReader
+	 */
+	public EnumInputReader<YesNo> getConfirmationReader() {
+		return confirmationReader;
+	}
+
+	/**
+	 * @return the terminal
+	 */
+	public TextTerminal getTerminal() {
+		return terminal;
+	}
+
+	/**
+	 * @return the props
+	 */
+	public TerminalProperties getProps() {
+		return props;
+	}
+
+	/**
+	 * @return the venue
+	 */
+	public VenueTicketService getVenue() {
+		return venue;
+	}
+
+	/**
+	 * @return the appProperties
+	 */
+	public Map<String, String> getAppProperties() {
+		return appProperties;
+	}
+	
+	
 
 }

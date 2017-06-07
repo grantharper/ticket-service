@@ -51,6 +51,13 @@ public class SeatReservation {
 	}
 
 	/**
+	 * @return the nextConfirmationId
+	 */
+	public static String getNextConfirmationId() {
+		return nextConfirmationId;
+	}
+
+	/**
 	 * @return the customer email
 	 */
 	public String getCustomerEmail() {

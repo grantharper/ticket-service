@@ -29,8 +29,5 @@ This is an application designed to allow users to discover, temporarily hold, an
 - `mvn exec:java`
 
 ### Proposed next steps
-- Update logic to ensure thread safety and allow for a web interface with multiple users
-	- place temporary holds on seats while they are being accessed
-	- finalize hold on seats once they have all been discovered
 - Establish persistance
 - Create web interface

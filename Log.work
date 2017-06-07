@@ -21,3 +21,6 @@ Adjusted to using the interface rather than concrete impl
 6/5
 Additional javadocs and tests
 Some cleanup
+
+6/6
+Used seat hold object to manage expiration time instead of individual seats
