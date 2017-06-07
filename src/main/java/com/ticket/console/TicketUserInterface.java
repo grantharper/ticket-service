@@ -202,6 +202,11 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 							insertWaitTime();
 							
 						}
+						//selection of no when asked to confirm hold
+						else{
+							LOGGER.info("Remove seat hold because customer indicated they did not want to reserve the seats");
+							venue.invalidateHold(seatHold);
+						}
 					}
 					
 				}

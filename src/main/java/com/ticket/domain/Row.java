@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Row {
-	
+
 	public static final Logger LOGGER = LoggerFactory.getLogger(Row.class);
 
 	/**
@@ -23,12 +23,12 @@ public class Row {
 	 * list of all the seats in the row
 	 */
 	private Map<Integer, Seat> seats = new HashMap<>();
-	
+
 	/**
 	 * venue where the row is located
 	 */
 	private Venue venue;
-	
+
 	/**
 	 * number of seats in the row
 	 */
@@ -53,6 +53,7 @@ public class Row {
 
 	/**
 	 * loops through the seats in the row to determine how many are available
+	 * 
 	 * @return number of available seats
 	 */
 	public int numSeatsAvailable() {
@@ -94,21 +95,20 @@ public class Row {
 		}
 
 		// case where we can't start from the middle. Start with whichever side
-		// has the first available seat since this side will have the most seats available
+		// has the first available seat since this side will have the most seats
+		// available
 		for (int i = 2; i <= seats.size(); i++) {
 
 			if (seats.get(i).isAvailable()) {
 				heldSeats = holdRightOrLeftSeats(numSeatsRequested, i, seatHold);
 				return heldSeats;
+			} else {
+				// some optimization to short circuit the holding of seats if I
+				// can already tell there won't be enough in this row
+				if (numSeatsRequested > ((numSeats - i) / 2) + (numSeats - i) % 2) {
+					return heldSeats;
+				}
 			}
-			// else{
-			// some optimization to short circuit the holding of seats if I can
-			// already tell there won't be enough
-			// if(numSeatsRequested > ((seats.size() - i) / 2) + (seats.size() -
-			// i) % 2){
-			// return null;
-			// }
-			// }
 		}
 
 		// could not find available seats in the row
@@ -128,7 +128,7 @@ public class Row {
 		List<Seat> heldSeats = new ArrayList<>(numSeats);
 		List<Seat> availableSeats = new ArrayList<>(numSeats);
 
-		//add the seats on the left or right side of center by moving by twos
+		// add the seats on the left or right side of center by moving by twos
 		for (int i = startingSeat; i <= seats.size(); i += 2) {
 			if (seats.get(i).isAvailable()) {
 				availableSeats.add(seats.get(i));
@@ -138,25 +138,25 @@ public class Row {
 			}
 		}
 
-		// if there are enough, place hold on the seats
+		// if there are enough seats available, place hold on the seats
 		if (availableSeats.size() >= numSeats) {
-			for (Seat oddSeat : availableSeats) {
-				oddSeat.placeHold(seatHold);
-				heldSeats.add(oddSeat);
+			for (Seat seat : availableSeats) {
+				seat.placeHold(seatHold);
+				heldSeats.add(seat);
 			}
-			return heldSeats;
-		} else {
-			return heldSeats;
-		}
+		} 
+		return heldSeats;
+	
 	}
 
 	/**
 	 * prints a map of the seats in the row
+	 * 
 	 * @return string representation of the row
 	 */
 	public String print() {
 		Iterator<Entry<Integer, Seat>> it = seats.entrySet().iterator();
-		String rowString = "";
+		String rowString = " ";
 		while (it.hasNext()) {
 			Seat currentSeat = it.next().getValue();
 			// takes into account the odds being on the left and the evens being
@@ -183,7 +183,5 @@ public class Row {
 	public int getNumSeats() {
 		return numSeats;
 	}
-	
-	
 
 }

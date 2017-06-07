@@ -1,7 +1,6 @@
 package com.ticket.domain;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ticket.service.VenueTicketService;
-import com.util.AppProperties;
 
 /**
  * The venue object will describe a venue with a given number of rows of seats
@@ -154,6 +152,11 @@ public class Venue implements VenueTicketService {
 			List<Integer> updatedSeatRequests = new ArrayList<>();
 			for (Integer request : seatRequests) {
 				int halvedRequest = request / 2;
+				if(halvedRequest < 1){
+					//unlikely scenario for a multithreaded app where a seat request of 1 cannot be fulfilled so we attempt to divide it
+					seatHold.invalidate();
+					return null;
+				}
 				if ((request % 2) == 1) {
 					updatedSeatRequests.add(halvedRequest + 1);
 				} else {
@@ -167,8 +170,6 @@ public class Venue implements VenueTicketService {
 			seatRequests = updatedSeatRequests;
 
 		}
-		
-		//could potentially roll back the seat hold here if something went wrong
 
 		// populate the SeatHold with the list of seats and customer info and
 		seatHold.commitSeatHold(heldSeats);
@@ -239,6 +240,14 @@ public class Venue implements VenueTicketService {
 		SeatReservation reservation = new SeatReservation(customerEmail, seatHold.getSeatsHeld());
 		seatReservations.put(reservation.getConfirmationId(), reservation);
 		return reservation.getConfirmationId();
+	}
+	
+	/**
+	 * see VenueTicketService for method summary
+	 */
+	@Override
+	public void invalidateHold(SeatHold seatHold) {
+		seatHold.invalidate();
 	}
 
 	/**

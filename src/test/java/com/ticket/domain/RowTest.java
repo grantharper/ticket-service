@@ -112,8 +112,8 @@ public class RowTest {
 	@Test
 	public void testPrintRow(){
 		String result = smallRow.print();
-		//size of row is twice size of number of seats
-		assertEquals(smallRow.getNumSeats() * 2, result.length());
+		//size of row is twice size of number of seats plus a space in the middle
+		assertEquals(smallRow.getNumSeats() * 2 + 1, result.length());
 	}
 
 }

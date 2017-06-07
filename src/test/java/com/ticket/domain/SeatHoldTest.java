@@ -31,6 +31,13 @@ public class SeatHoldTest {
 		assertTrue(seatHold.isNotValid());
 		
 	}
+	
+	@Test
+	public void testSeatHoldCommit(){
+		assertNull(seatHold.getHoldExpiration());
+		seatHold.commitSeatHold(new ArrayList<>());
+		assertNotNull(seatHold.getHoldExpiration());
+	}
 
 	@Test
 	public void testSeatHoldPrintSecondsToExpire(){
@@ -42,6 +49,21 @@ public class SeatHoldTest {
 		seatHold2.commitSeatHold(new ArrayList<Seat>());
 		assertEquals("2 seconds", seatHold2.printSecondsToExpiration());
 		
+	}
+	
+	@Test
+	public void invalidateSeatHold(){
+		assertTrue(seatHold.isHolding());
+		seatHold.invalidate();
+		assertFalse(seatHold.isHolding());
+	}
+	
+	@Test
+	public void invalidateCommittedSeatHold(){
+		seatHold.commitSeatHold(new ArrayList<>());
+		assertTrue(seatHold.isHolding());
+		seatHold.invalidate();
+		assertFalse(seatHold.isHolding());
 	}
 
 }

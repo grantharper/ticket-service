@@ -80,6 +80,13 @@ public class SeatHold {
 	public boolean isInProgress() {
 		return inProgress;
 	}
+	
+	public void invalidate(){
+		this.inProgress = false;
+		if(this.holdExpiration != null){
+			this.holdExpiration = null;
+		}
+	}
 
 	/**
 	 * @return whether the seat hold is currently holding the seats

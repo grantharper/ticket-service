@@ -98,10 +98,10 @@ mvn exec:java
 
 Next Steps
 Hold timeout disparity (have a final commit action on the seat holds)
-	Along with this, add guardrails to the seat object so that it knows whether it can be reserved based on a hold
 	Maybe put the SeatHold object in the Seat object instead of storing the hold time directly in the seat
 	SeatHold should be created initially and stored with the seats that will be held and marked as temporary
 	If SeatHold is successful, it will be given the hold time
+	Along with this, add guardrails to the seat object so that it knows whether it can be reserved based on a hold
 	If it fails, the temporary hold flag will be set to false so that seats with this hold know they are available
 Add logger to every class and log important information
 
