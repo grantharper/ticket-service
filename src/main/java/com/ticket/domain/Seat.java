@@ -1,7 +1,5 @@
 package com.ticket.domain;
 
-import java.time.LocalDateTime;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,11 +15,11 @@ public class Seat {
 	 * the unique identifier for the seat
 	 */
 	private final int seatId;
-
+	
 	/**
-	 * the time at which the hold was placed on the seat
+	 * the seat hold associated with this seat
 	 */
-	private LocalDateTime holdTime;
+	private SeatHold seatHold;
 
 	/**
 	 * true if a final reservation has been placed false if the seat has not
@@ -64,7 +62,7 @@ public class Seat {
 	 * @return an indicator as to whether the seat is available
 	 */
 	public boolean isAvailable() {
-		if (reserved) {
+		if (isReserved()) {
 			return false;
 		} else if (isHeld()) {
 			return false;
@@ -79,14 +77,10 @@ public class Seat {
 	 * @return an indicator as to whether the seat is held
 	 */
 	public boolean isHeld() {
-		if (holdTime == null) {
-			return false;
-		} else if (holdTime.plus(venue.getHoldDuration()).isBefore(LocalDateTime.now())) {
-			return false;
-		} else {
+		if (seatHold != null && seatHold.isHolding()){
 			return true;
 		}
-
+		return false;
 	}
 
 	/**
@@ -122,10 +116,8 @@ public class Seat {
 	 * places a hold on the seat by establishing the time when the seat was held
 	 * @return time when the seat was held
 	 */
-	//TODO: change this method to use a passed in time (maybe SeatHold object) so that there is not disparity between the hold times
-	public LocalDateTime placeHold() {
-		this.holdTime = LocalDateTime.now();
-		return holdTime;
+	public void placeHold(SeatHold seatHold) {
+		this.seatHold = seatHold;
 	}
 
 	/**
@@ -142,13 +134,6 @@ public class Seat {
 	 */
 	public int getSeatId() {
 		return seatId;
-	}
-
-	/**
-	 * @return the holdTime
-	 */
-	public LocalDateTime getHoldTime() {
-		return holdTime;
 	}
 
 	/**

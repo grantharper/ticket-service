@@ -177,7 +177,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 						if(seatHold != null){
 							LOGGER.info("Customer " + customerEmail + " has held " + numberOfSeatsRequested + " seats");
 							terminal.printf("Held %d seats\n\n", numberOfSeatsRequested);
-							terminal.print("Seat hold will expire in " + seatHold.secondsToExpiration() + ".\n\n");
+							terminal.print("Seat hold will expire in " + seatHold.printSecondsToExpiration() + ".\n\n");
 						}else{
 							LOGGER.info("Unable to hold seats due to not enough remaining");
 							terminal.println("Unable to hold seats. Not enough remaining seats in the venue");

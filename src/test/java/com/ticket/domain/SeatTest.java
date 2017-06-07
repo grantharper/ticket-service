@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -19,6 +20,7 @@ public class SeatTest {
 	private Row row;
 	private double seatHoldSeconds;
 	private long holdExpireSleepMillis;
+	private SeatHold seatHold;
 	
 
 	@Before
@@ -28,15 +30,7 @@ public class SeatTest {
 		row = new Row(1, 10, venue);
 		holdExpireSleepMillis = venue.getHoldDuration().toMillis() + 100;
 		seat = new Seat(1, venue, row);
-	}
-
-	@Test
-	public void testSeatHold() throws InterruptedException {
-		assertNull(seat.getHoldTime());
-		seat.placeHold();
-		assertNotNull(seat.getHoldTime());
-		Thread.sleep(holdExpireSleepMillis);
-		assertTrue(LocalDateTime.now().isAfter(seat.getHoldTime()));
+		seatHold = new SeatHold(customerEmail, venue);
 	}
 
 	@Test
@@ -44,9 +38,10 @@ public class SeatTest {
 
 		assertTrue(seat.isAvailable());
 		assertFalse(seat.isHeld());
-		seat.placeHold();
+		seat.placeHold(seatHold);
 		assertTrue(seat.isHeld());
 		assertFalse(seat.isAvailable());
+		seatHold.commitSeatHold(new ArrayList<Seat>());
 		Thread.sleep(holdExpireSleepMillis);
 		assertFalse(seat.isHeld());
 		assertTrue(seat.isAvailable());
@@ -63,7 +58,7 @@ public class SeatTest {
 	@Test
 	public void testPrintSeat(){
 		assertEquals(Seat.SEAT_AVAILABLE_CODE, seat.print());
-		seat.placeHold();
+		seat.placeHold(seatHold);
 		assertEquals(Seat.SEAT_HELD_CODE, seat.print());
 		seat.reserveSeat(customerEmail);
 		assertEquals(Seat.SEAT_RESERVED_CODE, seat.print());

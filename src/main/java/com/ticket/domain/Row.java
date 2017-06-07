@@ -74,7 +74,7 @@ public class Row {
 	 *            the number of seats to be held
 	 * @return list of seats that have been held. If unsuccessful, returns null
 	 */
-	List<Seat> holdSeats(int numSeatsRequested) {
+	List<Seat> holdSeats(int numSeatsRequested, SeatHold seatHold) {
 		// initialize with the number requested to avoid having to recreate it
 		// internally
 		List<Seat> heldSeats = new ArrayList<>(numSeatsRequested);
@@ -87,7 +87,7 @@ public class Row {
 		// case where we can start from the middle
 		if (seats.get(1).isAvailable()) {
 			for (int i = 1; i <= numSeatsRequested; i++) {
-				seats.get(i).placeHold();
+				seats.get(i).placeHold(seatHold);
 				heldSeats.add(seats.get(i));
 			}
 			return heldSeats;
@@ -98,7 +98,7 @@ public class Row {
 		for (int i = 2; i <= seats.size(); i++) {
 
 			if (seats.get(i).isAvailable()) {
-				heldSeats = holdRightOrLeftSeats(numSeatsRequested, i);
+				heldSeats = holdRightOrLeftSeats(numSeatsRequested, i, seatHold);
 				return heldSeats;
 			}
 			// else{
@@ -124,11 +124,11 @@ public class Row {
 	 *            the first available seat on that side
 	 * @return
 	 */
-	private List<Seat> holdRightOrLeftSeats(int numSeats, int startingSeat) {
+	private List<Seat> holdRightOrLeftSeats(int numSeats, int startingSeat, SeatHold seatHold) {
 		List<Seat> heldSeats = new ArrayList<>(numSeats);
 		List<Seat> availableSeats = new ArrayList<>(numSeats);
-		// TODO: think about whether this check is necessary given the
-		// optimization of making sure there are enough seats remaining
+
+		//add the seats on the left or right side of center by moving by twos
 		for (int i = startingSeat; i <= seats.size(); i += 2) {
 			if (seats.get(i).isAvailable()) {
 				availableSeats.add(seats.get(i));
@@ -138,10 +138,10 @@ public class Row {
 			}
 		}
 
-		// if there are enough, hold the seats
+		// if there are enough, place hold on the seats
 		if (availableSeats.size() >= numSeats) {
 			for (Seat oddSeat : availableSeats) {
-				oddSeat.placeHold();
+				oddSeat.placeHold(seatHold);
 				heldSeats.add(oddSeat);
 			}
 			return heldSeats;

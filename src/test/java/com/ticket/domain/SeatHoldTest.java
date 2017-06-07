@@ -11,24 +11,36 @@ import org.junit.Test;
 public class SeatHoldTest {
 
 	private String customerEmail ;
-	private LocalDateTime seatHoldExpiration;
 	private SeatHold seatHold;
+	private Venue venue;
 
 	@Before
 	public void setUp(){
+		venue = new Venue(1, 10, 10, 0.001);
 		customerEmail = "email@email.com";
-		seatHoldExpiration = LocalDateTime.now().minusSeconds(1);
-		seatHold = new SeatHold(new ArrayList<Seat>(), customerEmail, seatHoldExpiration);
+		seatHold = new SeatHold(customerEmail, venue);
+	}
+	
+	@Test
+	public void testSeatHoldIsHolding() throws InterruptedException{
+		assertTrue(seatHold.isHolding());
+		seatHold.commitSeatHold(new ArrayList<Seat>());
+		assertTrue(seatHold.isHolding());
+		Thread.sleep(2);
+		assertFalse(seatHold.isHolding());
+		assertTrue(seatHold.isNotValid());
+		
 	}
 
 	@Test
-	public void testSeatHoldExpired(){
+	public void testSeatHoldPrintSecondsToExpire(){
+		seatHold.commitSeatHold(new ArrayList<Seat>());
+		assertEquals("0 seconds", seatHold.printSecondsToExpiration());
 		
-		assertTrue(seatHold.isExpired());
-		assertEquals("0 seconds", seatHold.secondsToExpiration());
-		
-		seatHold = new SeatHold(new ArrayList<Seat>(), customerEmail, LocalDateTime.now().plusNanos(2999999999L));
-		assertEquals("2 seconds", seatHold.secondsToExpiration());
+		Venue venue2 = new Venue(1, 10, 10, 2.9);
+		SeatHold seatHold2 = new SeatHold(customerEmail, venue2);
+		seatHold2.commitSeatHold(new ArrayList<Seat>());
+		assertEquals("2 seconds", seatHold2.printSecondsToExpiration());
 		
 	}
 

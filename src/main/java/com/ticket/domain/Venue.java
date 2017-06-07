@@ -113,6 +113,7 @@ public class Venue implements VenueTicketService {
 			return null;
 		}
 
+		SeatHold seatHold = new SeatHold(customerEmail, this);
 		// go through each row and get the List of seats that are held
 		List<Seat> heldSeats = new ArrayList<>(numSeatsRequested);
 		List<Integer> seatRequests = new ArrayList<>();
@@ -134,7 +135,7 @@ public class Venue implements VenueTicketService {
 
 			//loop through each divided up request and hold available seats
 			for (int i = 0; i < seatRequests.size(); i++ ) {
-				List<Seat> temp = holdSeats(seatRequests.get(i));
+				List<Seat> temp = holdSeats(seatRequests.get(i), seatHold);
 				if (!temp.isEmpty()) {
 					//if seats were held, add them to the heldSeats list
 					heldSeats.addAll(temp);
@@ -166,9 +167,11 @@ public class Venue implements VenueTicketService {
 			seatRequests = updatedSeatRequests;
 
 		}
+		
+		//could potentially roll back the seat hold here if something went wrong
 
 		// populate the SeatHold with the list of seats and customer info and
-		SeatHold seatHold = new SeatHold(heldSeats, customerEmail, LocalDateTime.now().plus(this.holdDuration));
+		seatHold.commitSeatHold(heldSeats);
 		// add it to the list of venue seat holds
 		this.seatHolds.put(seatHold.getSeatHoldId(), seatHold);
 		// return the seat hold
@@ -183,13 +186,13 @@ public class Venue implements VenueTicketService {
 	 * @param seatsRequested
 	 * @return held seats
 	 */
-	private List<Seat> holdSeats(int seatsRequested) {
+	private List<Seat> holdSeats(int seatsRequested, SeatHold seatHold) {
 		List<Seat> heldSeats = new ArrayList<>(seatsRequested);
 		Iterator<Entry<Integer, Row>> it = rows.entrySet().iterator();
 
 		while (it.hasNext() && heldSeats.isEmpty()) {
 			Row currentRow = it.next().getValue();
-			heldSeats = currentRow.holdSeats(seatsRequested);
+			heldSeats = currentRow.holdSeats(seatsRequested, seatHold);
 		}
 		return heldSeats;
 	}
@@ -222,8 +225,8 @@ public class Venue implements VenueTicketService {
 		// retrieve the seat hold by id
 		SeatHold seatHold = seatHolds.get(seatHoldId);
 		
-		//determine if the seatHold has expired
-		if(seatHold.isExpired()){
+		//determine if the seatHold is no longer valid
+		if(seatHold.isNotValid()){
 			return null;
 		}
 		

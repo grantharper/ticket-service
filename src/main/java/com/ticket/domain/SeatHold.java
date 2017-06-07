@@ -2,7 +2,6 @@ package com.ticket.domain;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -28,7 +27,7 @@ public class SeatHold {
 	/**
 	 * the list of seats that are held by the seat hold
 	 */
-	private final List<Seat> seatsHeld;
+	private List<Seat> seatsHeld;
 	
 	/**
 	 * the email of the customer who owns the seat hold
@@ -38,36 +37,76 @@ public class SeatHold {
 	/**
 	 * the time when the seat hold will expire
 	 */
-	private final LocalDateTime holdExpiration;
-
+	private LocalDateTime holdExpiration;
+	
+	/**
+	 * flag to indicate that the hold is in progress
+	 */
+	private boolean inProgress;
+	
+	/**
+	 * the venue where the seat hold is located
+	 */
+	private final Venue venue;
+	
 	/**
 	 * instantiation of the seat hold
 	 * @param seatsHeld the seats held
 	 * @param customerEmail the email of the customer
 	 * @param holdExpiration the time when the seat hold will expire
 	 */
-	public SeatHold(List<Seat> seatsHeld, String customerEmail, LocalDateTime holdExpiration) {
+	public SeatHold(String customerEmail, Venue venue){
 		this.seatHoldId = nextSeatHoldId;
 		nextSeatHoldId++;
-		this.seatsHeld = seatsHeld;
+		this.venue = venue;
 		this.customerEmail = customerEmail;
-		this.holdExpiration = holdExpiration;
+		this.inProgress = true;
+	}
+	
+	/**
+	 * commits the seat hold and establishes the time when it will expire
+	 * @param seatsHeld the seats held
+	 * @param holdExpiration the time when the seat hold will expire
+	 */
+	public void commitSeatHold(List<Seat> seatsHeld){
+		this.seatsHeld = seatsHeld;
+		this.holdExpiration = LocalDateTime.now().plus(this.venue.holdDuration);
+		this.inProgress = false;
+	}
+	
+	/**
+	 * @return the inProgress
+	 */
+	public boolean isInProgress() {
+		return inProgress;
 	}
 
 	/**
-	 * @return whether the seat hold is expired
+	 * @return whether the seat hold is currently holding the seats
 	 */
-	public boolean isExpired(){
-		if(LocalDateTime.now().isAfter(holdExpiration)){
+	public boolean isHolding(){
+		if(this.inProgress){
+			return true;
+		}
+		else 
+		if(this.holdExpiration != null && LocalDateTime.now().isBefore(holdExpiration)){
 			return true;
 		}
 		return false;
 	}
 	
 	/**
+	 * method to represent whether a seat hold is in effect in plain English
+	 * @return whether seat hold is in effect
+	 */
+	public boolean isNotValid(){
+		return !isHolding();
+	}
+	
+	/**
 	 * @return the number of seconds until seat hold expiration truncated to the nearest second
 	 */
-	public String secondsToExpiration(){
+	public String printSecondsToExpiration(){
 		Duration timeToExpire = Duration.between(LocalDateTime.now(), holdExpiration);
 		if(timeToExpire.toMillis() > 0){
 			return "" + (timeToExpire.toMillis() / 1000) + " seconds";
