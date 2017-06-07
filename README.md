@@ -18,9 +18,8 @@ This is an application designed to allow users to discover, temporarily hold, an
 	3. closest to the middle of the row
 4. The venue will be of a rectangular shape
 5. The command line interface will allow the user to become different customers by providing different email addresses
-6. Holds initiated by a customer will be honored even if the customer switches
+6. Holds will be relinquished if a customer does not confirm the reservation within the hold time
 7. Customers can hold as many seats as they wish (as long as there are enough available in the venue)
-8. There will be no interactive countdown clock
 	
 ### Execution from a terminal
 - `git clone https://github.com/grantharper/ticket-service.git`
