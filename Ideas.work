@@ -1,3 +1,5 @@
+Scratch work - not final
+
 Startup Parameters to be set in a property file
 	1. Venue Dimensions (rows and seats per row)
 	2. Customer Hold Time (seconds)
@@ -86,32 +88,8 @@ By default, the logger is set to INFO. In order to change the level to DEBUG, pa
 -Dorg.slf4j.simpleLogger.defaultLogLevel=DEBUG
 
 
-Approach Info
-The Seats should be aware of whether they are held or not. The app should not have to look at all the holds to determine whether seats are held.\
-Make sure to generate comments as seen in the provided interface
-
-
-Execution of application from command line
-mvn clean install
-mvn exec:java
-
-
 Next Steps
 Explore persistance options
-Look into unit tests of the TicketUserInterface - may need Mockito or another mock framework
-
-Potential Issues
-If the application is running slowly, seat hold times could be different for seats accessed in different groups
-Could solve this by placing a temporary hold on them (to avoid other threads putting a hold) and then committing the hold once they are all in a list together
-When user indicates they do not want to reserve the tickets they have a hold on, the hold should be released?
-
-Functional Interface work
-
-.withValueChecker((u, v) -> {
-			List<String> errorMessages = new ArrayList<>();
-			errorMessages.add("Please enter a valid email address");
-			return errorMessages;
-		});
 
 
 

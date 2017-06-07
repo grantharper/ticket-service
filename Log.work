@@ -24,3 +24,6 @@ Some cleanup
 
 6/6
 Used seat hold object to manage expiration time instead of individual seats
+
+6/7
+Added UI tests using a Mock Terminal
