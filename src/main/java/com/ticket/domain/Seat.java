@@ -1,5 +1,11 @@
 package com.ticket.domain;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,6 +13,7 @@ import org.slf4j.LoggerFactory;
  * Describes a seat in a venue and its state regarding whether it is available, on hold, or reserved
  *
  */
+@Entity
 public class Seat {
 	
 	public static final Logger LOGGER = LoggerFactory.getLogger(Seat.class);
@@ -14,11 +21,20 @@ public class Seat {
 	/**
 	 * the unique identifier for the seat
 	 */
-	private final int seatId;
+	@Id
+	@GeneratedValue(strategy=GenerationType.AUTO)
+	private Long seatId;
+	
+	
+	/**
+	 * the user-friendly seat number in the row
+	 */
+	private Long seatNumber;
 	
 	/**
 	 * the seat hold associated with this seat
 	 */
+	@ManyToOne
 	private SeatHold seatHold;
 
 	/**
@@ -31,16 +47,12 @@ public class Seat {
 	 * email of the customer who reserved the seats
 	 */
 	private String customerReservationEmail;
-
-	/**
-	 * venue where the seat is located
-	 */
-	private final Venue venue;
 	
 	/**
 	 * row where the seat is located
 	 */
-	private final Row row;
+	@ManyToOne
+	private Row row;
 	
 	/**
 	 * Instantiation of the seat
@@ -50,9 +62,8 @@ public class Seat {
 	 * @param seatNum
 	 *            the number of the seat
 	 */
-	public Seat(int seatId, final Venue venue, final Row row) {
-		this.seatId = seatId;
-		this.venue = venue;
+	public Seat(final Long seatNum, Row row) {
+		this.seatNumber = seatNum;
 		this.row = row;
 	}
 
@@ -132,8 +143,29 @@ public class Seat {
 	/**
 	 * @return the seatId
 	 */
-	public int getSeatId() {
+	public Long getSeatId() {
 		return seatId;
+	}
+
+	/**
+	 * @param seatId the seatId to set
+	 */
+	public void setSeatId(Long seatId) {
+		this.seatId = seatId;
+	}
+
+	/**
+	 * @return the seatHold
+	 */
+	public SeatHold getSeatHold() {
+		return seatHold;
+	}
+
+	/**
+	 * @param seatHold the seatHold to set
+	 */
+	public void setSeatHold(SeatHold seatHold) {
+		this.seatHold = seatHold;
 	}
 
 	/**
@@ -144,10 +176,65 @@ public class Seat {
 	}
 
 	/**
+	 * @param reserved the reserved to set
+	 */
+	public void setReserved(boolean reserved) {
+		this.reserved = reserved;
+	}
+
+	/**
 	 * @return the customerReservationEmail
 	 */
 	public String getCustomerReservationEmail() {
 		return customerReservationEmail;
 	}
+
+	/**
+	 * @param customerReservationEmail the customerReservationEmail to set
+	 */
+	public void setCustomerReservationEmail(String customerReservationEmail) {
+		this.customerReservationEmail = customerReservationEmail;
+	}
+
+	/**
+	 * @return the row
+	 */
+	public Row getRow() {
+		return row;
+	}
+
+	/**
+	 * @param row the row to set
+	 */
+	public void setRow(Row row) {
+		this.row = row;
+	}
+	
+	
+
+	/**
+	 * @return the seatNumber
+	 */
+	public Long getSeatNumber() {
+		return seatNumber;
+	}
+
+	/**
+	 * @param seatNumber the seatNumber to set
+	 */
+	public void setSeatNumber(Long seatNumber) {
+		this.seatNumber = seatNumber;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Seat [seatId=" + seatId + ", seatHold=" + seatHold + ", reserved=" + reserved
+				+ ", customerReservationEmail=" + customerReservationEmail + ", row=" + row + "]";
+	}
+
+	
 
 }

@@ -1,38 +1,56 @@
 package com.ticket.domain;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Entity
 public class Row {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(Row.class);
 
 	/**
-	 * unique identifier for the row
+	 * unique identifier for the row throughout the system
 	 */
-	private final int rowId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private Long rowId;
+	
+	/**
+	 * the user-friendly row number in a given venue
+	 */
+	private Long rowNumber;
 
 	/**
 	 * list of all the seats in the row
 	 */
-	private Map<Integer, Seat> seats = new HashMap<>();
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "row")
+	@OrderBy("seatNumber ASC")
+	private Set<Seat> seats = new LinkedHashSet<Seat>();
 
 	/**
 	 * venue where the row is located
 	 */
+	@ManyToOne
 	private Venue venue;
 
-	/**
-	 * number of seats in the row
-	 */
-	private final int numSeats;
+	public Row() {
+
+	}
 
 	/**
 	 * instantiates a row in a given venue
@@ -42,12 +60,12 @@ public class Row {
 	 * @param rowId
 	 *            the unique identifier for the row
 	 */
-	public Row(final int rowId, final int numSeats, Venue venue) {
-		this.rowId = rowId;
+	public Row(final Long rowNumber, final Long numSeats, Venue venue) {
+		this.rowNumber = rowNumber;
 		this.venue = venue;
-		this.numSeats = numSeats;
-		for (int i = 1; i <= numSeats; i++) {
-			this.seats.put(i, new Seat(i, venue, this));
+		//can I do an autowired seatRepository here and create all the seats to save them? Probs not.
+		for (Long i = 1L; i <= numSeats; i++) {
+			this.seats.add(new Seat(i, this));
 		}
 	}
 
@@ -58,10 +76,10 @@ public class Row {
 	 */
 	public int numSeatsAvailable() {
 
-		Iterator<Entry<Integer, Seat>> it = seats.entrySet().iterator();
+		Iterator<Seat> it = seats.iterator();
 		int seatsAvailableInRow = 0;
 		while (it.hasNext()) {
-			if (it.next().getValue().isAvailable()) {
+			if (it.next().isAvailable()) {
 				seatsAvailableInRow++;
 			}
 		}
@@ -84,10 +102,13 @@ public class Row {
 		if (numSeatsRequested > seats.size()) {
 			return heldSeats;
 		}
+		
+		//put the seats into an array list for easier access
+		List<Seat> seats = new ArrayList<>(this.seats);
 
 		// case where we can start from the middle
-		if (seats.get(1).isAvailable()) {
-			for (int i = 1; i <= numSeatsRequested; i++) {
+		if (seats.get(0).isAvailable()) {
+			for (int i = 0; i < numSeatsRequested; i++) {
 				seats.get(i).placeHold(seatHold);
 				heldSeats.add(seats.get(i));
 			}
@@ -97,15 +118,15 @@ public class Row {
 		// case where we can't start from the middle. Start with whichever side
 		// has the first available seat since this side will have the most seats
 		// available
-		for (int i = 2; i <= seats.size(); i++) {
+		for (int i = 1; i <= seats.size(); i++) {
 
 			if (seats.get(i).isAvailable()) {
-				heldSeats = holdRightOrLeftSeats(numSeatsRequested, i, seatHold);
+				heldSeats = holdRightOrLeftSeats(numSeatsRequested, i, seatHold, seats);
 				return heldSeats;
 			} else {
 				// some optimization to short circuit the holding of seats if I
 				// can already tell there won't be enough in this row
-				if (numSeatsRequested > ((numSeats - i) / 2) + (numSeats - i) % 2) {
+				if (numSeatsRequested > ((this.seats.size() - i) / 2) + (this.seats.size() - i) % 2) {
 					return heldSeats;
 				}
 			}
@@ -124,12 +145,12 @@ public class Row {
 	 *            the first available seat on that side
 	 * @return
 	 */
-	private List<Seat> holdRightOrLeftSeats(int numSeats, int startingSeat, SeatHold seatHold) {
+	private List<Seat> holdRightOrLeftSeats(int numSeats, int startingSeat, SeatHold seatHold, List<Seat> seats) {
 		List<Seat> heldSeats = new ArrayList<>(numSeats);
 		List<Seat> availableSeats = new ArrayList<>(numSeats);
 
 		// add the seats on the left or right side of center by moving by twos
-		for (int i = startingSeat; i <= seats.size(); i += 2) {
+		for (int i = startingSeat; i < seats.size(); i += 2) {
 			if (seats.get(i).isAvailable()) {
 				availableSeats.add(seats.get(i));
 			}
@@ -144,9 +165,9 @@ public class Row {
 				seat.placeHold(seatHold);
 				heldSeats.add(seat);
 			}
-		} 
+		}
 		return heldSeats;
-	
+
 	}
 
 	/**
@@ -155,13 +176,13 @@ public class Row {
 	 * @return string representation of the row
 	 */
 	public String print() {
-		Iterator<Entry<Integer, Seat>> it = seats.entrySet().iterator();
+		Iterator<Seat> it = seats.iterator();
 		String rowString = " ";
 		while (it.hasNext()) {
-			Seat currentSeat = it.next().getValue();
+			Seat currentSeat = it.next();
 			// takes into account the odds being on the left and the evens being
 			// on the right
-			if ((currentSeat.getSeatId()) % 2 == 1) {
+			if ((currentSeat.getSeatNumber()) % 2 == 1) {
 				rowString = " " + currentSeat.print() + rowString;
 			} else {
 				rowString = rowString + currentSeat.print() + " ";
@@ -173,15 +194,60 @@ public class Row {
 	/**
 	 * @return the rowId
 	 */
-	public int getRowId() {
+	public Long getRowId() {
 		return rowId;
 	}
 
 	/**
-	 * @return the numSeats
+	 * @param rowId the rowId to set
 	 */
-	public int getNumSeats() {
-		return numSeats;
+	public void setRowId(Long rowId) {
+		this.rowId = rowId;
 	}
+
+	/**
+	 * @return the rowNumber
+	 */
+	public Long getRowNumber() {
+		return rowNumber;
+	}
+
+	/**
+	 * @param rowNumber the rowNumber to set
+	 */
+	public void setRowNumber(Long rowNumber) {
+		this.rowNumber = rowNumber;
+	}
+
+	/**
+	 * @return the seats
+	 */
+	public Set<Seat> getSeats() {
+		return seats;
+	}
+
+	/**
+	 * @param seats the seats to set
+	 */
+	public void setSeats(Set<Seat> seats) {
+		this.seats = seats;
+	}
+
+	/**
+	 * @return the venue
+	 */
+	public Venue getVenue() {
+		return venue;
+	}
+
+	/**
+	 * @param venue the venue to set
+	 */
+	public void setVenue(Venue venue) {
+		this.venue = venue;
+	}
+
+	
+	
 
 }
