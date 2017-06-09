@@ -103,32 +103,5 @@ public class TicketUserInterfaceTest {
 		assertEquals(1234, output);
 		assertEquals(2, terminal.getReadCalls());
 	}
-	
-	@Ignore
-	@Test
-	public void testBasicFlow() {
-		TextIO textIO = TextIoFactory.getTextIO();
-		
-		TicketUserInterface app = new TicketUserInterface(textIO);
-		List<String> inputs = terminal.getInputs();
-		String outputs = terminal.getOutput();
-		//login
-		inputs.add("email@email.com");
-		//discover number of seats
-		inputs.add("1");
-		//request seats
-		inputs.add("2");
-		//enter number of seats
-		inputs.add("20");
-		//confirm seat selection
-		inputs.add("1");
-		//logout
-		inputs.add("3");
-		//quit
-		inputs.add("q");
-		//accept all of the user input
-		app.run();
-		
-	}
 
 }

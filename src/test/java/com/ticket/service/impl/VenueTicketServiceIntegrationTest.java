@@ -225,11 +225,6 @@ public class VenueTicketServiceIntegrationTest {
 		//there are 4 more lines than rows in the message for readability
 		assertEquals(venue.getRows().size() + 4, rowArray.length);
 		
-		//when venue is too large to be printed, display an error
-//		Venue largeVenue = new Venue(2, 100, 100, 40);
-//		String largeVenueMap = largeVenue.printVenue();
-//		assertEquals(Venue.SEAT_MAP_PRINT_ERROR_MSG, largeVenueMap);
-		
 	}
 
 }
