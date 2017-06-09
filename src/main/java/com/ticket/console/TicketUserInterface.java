@@ -1,8 +1,5 @@
 package com.ticket.console;
 
-import java.util.Map;
-import java.util.function.BiConsumer;
-
 import org.beryx.textio.EnumInputReader;
 import org.beryx.textio.IntInputReader;
 import org.beryx.textio.StringInputReader;
@@ -17,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import com.ticket.domain.SeatHold;
 import com.ticket.service.VenueTicketService;
-import com.util.AppProperties;
 
 /**
  * The user interface class for the ticket service. This class will govern how
@@ -25,7 +21,7 @@ import com.util.AppProperties;
  * console prompts
  */
 @Component
-public class TicketUserInterface implements BiConsumer<TextIO, String> {
+public class TicketUserInterface {
 	public static final Logger LOGGER = LoggerFactory.getLogger(TicketUserInterface.class);
 	
 	/**
@@ -80,6 +76,9 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	@Value("${venue.displayMap}")
 	private boolean displayVenueMap;
 	
+	/**
+	 * id of the only venue currently supported in this application
+	 */
 	@Value("${venue.id}")
 	private Integer venueId;
 	
@@ -99,7 +98,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	/**
 	 * method that runs the terminal that the user will use to provide inputs to the venue ticket service
 	 */
-	public void accept(TextIO textIO, String initData) {
+	public void run() {
 
 		LOGGER.info("Accepting user input via the terminal");
 		while (true) {
@@ -114,8 +113,10 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 			customerEmail = userEmailReader.read("Please provide your email address to log in or enter \"q\" to quit: \n");
 			if(customerEmail.equals("q")){
 				LOGGER.info("Customer provided quit command. Exiting");
+				terminal.println("Exited Application");
 				terminal.dispose();
-				break;
+				return;
+				//break;
 			}
 			customerLoggedIn = true;
 			LOGGER.info("Customer with email " + customerEmail + " has logged in");
@@ -159,8 +160,6 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 						
 						terminal.printf("Calculating best available seats\n\n");
 						insertWaitTime();
-						
-						
 
 						seatHold = venueTicketService.findAndHoldSeats(numberOfSeatsRequested, customerEmail);
 						

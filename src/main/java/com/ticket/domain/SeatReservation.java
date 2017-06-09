@@ -56,11 +56,10 @@ public class SeatReservation {
 	 * @param customerEmail
 	 * @param reservedSeats
 	 */
-	public SeatReservation(String customerEmail, List<Seat> reservedSeats) {
+	public SeatReservation(String customerEmail) {
 		this.confirmationId = nextConfirmationId;
 		updateNextConfirmationId();
 		this.customerEmail = customerEmail;
-		this.reservedSeats = reservedSeats;
 	}
 	
 	public SeatReservation(){}
@@ -99,5 +98,14 @@ public class SeatReservation {
 	public List<Seat> getReservedSeats() {
 		return reservedSeats;
 	}
+
+	/**
+	 * @return the seatReservationId
+	 */
+	public Integer getSeatReservationId() {
+		return seatReservationId;
+	}
+
+	
 
 }

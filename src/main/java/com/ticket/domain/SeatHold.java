@@ -121,6 +121,19 @@ public class SeatHold {
 		
 	}
 
+	/**
+	 * @return the seatHoldId
+	 */
+	public Integer getSeatHoldId() {
+		return seatHoldId;
+	}
+
+	/**
+	 * @param seatHoldId the seatHoldId to set
+	 */
+	public void setSeatHoldId(Integer seatHoldId) {
+		this.seatHoldId = seatHoldId;
+	}
 
 	/**
 	 * @return the seatsHeld
@@ -129,6 +142,12 @@ public class SeatHold {
 		return seatsHeld;
 	}
 
+	/**
+	 * @param seatsHeld the seatsHeld to set
+	 */
+	public void setSeatsHeld(List<Seat> seatsHeld) {
+		this.seatsHeld = seatsHeld;
+	}
 
 	/**
 	 * @return the customerEmail
@@ -138,10 +157,10 @@ public class SeatHold {
 	}
 
 	/**
-	 * @return the seatHoldId
+	 * @param customerEmail the customerEmail to set
 	 */
-	public Integer getSeatHoldId() {
-		return seatHoldId;
+	public void setCustomerEmail(String customerEmail) {
+		this.customerEmail = customerEmail;
 	}
 
 	/**
@@ -150,6 +169,37 @@ public class SeatHold {
 	public LocalDateTime getExpireTime() {
 		return expireTime;
 	}
+
+	/**
+	 * @param expireTime the expireTime to set
+	 */
+	public void setExpireTime(LocalDateTime expireTime) {
+		this.expireTime = expireTime;
+	}
+
+	/**
+	 * @return the venue
+	 */
+	public Venue getVenue() {
+		return venue;
+	}
+
+	/**
+	 * @param venue the venue to set
+	 */
+	public void setVenue(Venue venue) {
+		this.venue = venue;
+	}
+
+	/**
+	 * @param inProgress the inProgress to set
+	 */
+	public void setInProgress(boolean inProgress) {
+		this.inProgress = inProgress;
+	}
+
+
+	
 
 	
 

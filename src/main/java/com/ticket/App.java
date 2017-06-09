@@ -1,7 +1,5 @@
 package com.ticket;
 
-import java.util.function.BiConsumer;
-
 import javax.annotation.Resource;
 
 import org.beryx.textio.TextIO;
@@ -30,6 +28,9 @@ public class App implements CommandLineRunner {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 	
+	/**
+	 * the user interface for the application
+	 */
 	@Resource
 	TicketUserInterface ticketUserInterface;
 
@@ -40,37 +41,25 @@ public class App implements CommandLineRunner {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		SpringApplication.run(App.class);
+		SpringApplication.run(App.class).close();
 	}
 
+	/**
+	 * bean for the textIO library that provides the terminal interface
+	 * @return
+	 */
 	@Bean
 	public TextIO textIO() {
 		return TextIoFactory.getTextIO();
 	}
-//
-//	@Bean
-//	public TicketUserInterface ui() {
-//		return new TicketUserInterface(textIO());
-//	}
-//
-//	@Bean
-//	public CommandLineRunner execute() {
-//		return (args) -> {
-//			LOGGER.info("Command line runner starting up");
-//
-//			BiConsumer<TextIO, String> app = ui();
-//
-//			app.accept(textIO(), null);
-//
-//		};
-//	}
 
+	/**
+	 * method that boots up the console application
+	 */
 	@Override
 	public void run(String... arg0) throws Exception {
 		LOGGER.info("Command line runner starting up");
 
-		BiConsumer<TextIO, String> app = ticketUserInterface;
-
-		app.accept(textIO(), null);
+		ticketUserInterface.run();
 	}
 }

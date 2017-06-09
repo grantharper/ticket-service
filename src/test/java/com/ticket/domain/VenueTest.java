@@ -3,7 +3,11 @@ package com.ticket.domain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -14,18 +18,37 @@ public class VenueTest {
 	private Venue venue;
 	private Integer venueRows;
 	private Integer venueSeatsPerRow;
-	private double venueHoldSeconds;
+	private Integer venueHoldMilliseconds;
 	private Integer totalVenueSeats;
-	private long holdExpireSleepMillis;
+	private Integer holdExpireSleepMillis;
 	
 	@Before
 	public void setUp(){
+		venue = new Venue(1);
 		venueRows = 10;
 		venueSeatsPerRow = 20;
-		venueHoldSeconds = 0.1;
+		venueHoldMilliseconds = 100;
+		createVenue();
+		holdExpireSleepMillis = venueHoldMilliseconds + 100; //100 more milliseconds than the seat hold has
+	}
+
+	/**
+	 * creates venue with POJOs instead of the database
+	 */
+	private void createVenue() {
+		Set<Row> rows = new LinkedHashSet<>();
+		for (Integer i = 0; i < venueRows; i++) {
+			Row row = new Row(i + 1, venue);
+			Set<Seat> seats = new LinkedHashSet<>();
+			for (Integer j = 0; j < venueSeatsPerRow; j++) {
+				Seat seat = new Seat(j + 1, row);
+				seats.add(seat);
+			}
+			row.setSeats(seats);
+			rows.add(row);
+		}
+		venue.setRows(rows);
 		totalVenueSeats = venueRows * venueSeatsPerRow;
-		holdExpireSleepMillis = (long) (venueHoldSeconds * 1000) + 100; //100 more milliseconds than the seat hold has
-		venue = new Venue(1);
 	}
 	
 	@Test
@@ -34,15 +57,12 @@ public class VenueTest {
 		assertEquals(totalVenueSeats.intValue(), venue.numSeatsAvailable());
 		//after a hold
 		int numSeatsRequested = 10;
-		venue.findAndHoldSeats(numSeatsRequested, customerEmail);
+		SeatHold seatHold = venue.findAndHoldSeats(numSeatsRequested, customerEmail);
+		seatHold.commitSeatHold(LocalDateTime.now().plusNanos(venueHoldMilliseconds * 1000000));
 		assertEquals(totalVenueSeats - numSeatsRequested, venue.numSeatsAvailable());
 		//after hold expires
 		Thread.sleep(holdExpireSleepMillis);
-		assertEquals(totalVenueSeats, venue.numSeatsAvailable());
-		//after a reservation
-		SeatHold seatHold = venue.findAndHoldSeats(numSeatsRequested, customerEmail);
-		venue.reserveSeats(seatHold.getSeatHoldId(), customerEmail);
-		assertEquals(totalVenueSeats - numSeatsRequested, venue.numSeatsAvailable());
+		assertEquals(totalVenueSeats.intValue(), venue.numSeatsAvailable());
 		
 	}
 
@@ -116,19 +136,21 @@ public class VenueTest {
 		venue.findAndHoldSeats(reserveSeats, customerEmail);
 		assertEquals(totalVenueSeats - reserveSeats, venue.numSeatsAvailable());
 		//there should be 0 seats left in the first row
-		assertEquals(0, venue.getRows().get(1).numSeatsAvailable());
+		List<Row> rows = new ArrayList(venue.getRows());
+		assertEquals(0, rows.get(0).numSeatsAvailable());
 		//there should be only 1 seat taken in the second row
-		assertEquals(venueSeatsPerRow - 1, venue.getRows().get(2).numSeatsAvailable());
+		assertEquals(venueSeatsPerRow - 1, rows.get(1).numSeatsAvailable());
 	}
 	
 	@Test
 	public void testTimedSeatHolds() throws InterruptedException{
 		int reserveSeats = 5;
-		venue.findAndHoldSeats(reserveSeats, customerEmail);
+		SeatHold seatHold = venue.findAndHoldSeats(reserveSeats, customerEmail);
 		assertEquals(totalVenueSeats - reserveSeats, venue.numSeatsAvailable());
+		seatHold.commitSeatHold(LocalDateTime.now().plusNanos(venueHoldMilliseconds * 1000000));
 		Thread.sleep(holdExpireSleepMillis);
 		//after hold expiration, all seats should be available
-		assertEquals(totalVenueSeats, venue.numSeatsAvailable());
+		assertEquals(totalVenueSeats.intValue(), venue.numSeatsAvailable());
 	}
 	
 	
@@ -144,33 +166,18 @@ public class VenueTest {
 	}
 	
 	@Test
-	public void testReserveSeats(){
-		int reserveSeats = 2;
-		SeatHold seatHold = venue.findAndHoldSeats(reserveSeats, customerEmail);
-		String confirmationCode = venue.reserveSeats(seatHold.getSeatHoldId(), customerEmail);
-		assertEquals(venue.getSeatReservations().get(confirmationCode).getCustomerEmail(), customerEmail);
-		assertEquals(venue.getSeatReservations().get(confirmationCode).getReservedSeats().size(), reserveSeats);
-	}
-	
-	@Test
-	public void reserveSeatsFailsWithExpiredHold() throws InterruptedException{
-		int reserveSeats = 2;
-		SeatHold seatHold = venue.findAndHoldSeats(reserveSeats, customerEmail);
-		Thread.sleep(holdExpireSleepMillis);
-		String confirmationCode = venue.reserveSeats(seatHold.getSeatHoldId(), customerEmail);
-		assertNull(confirmationCode);
-	}
-	
-	@Test
 	public void testPrintVenue(){
 		String venueMap = venue.printVenue();
 		String rowArray[] = venueMap.split("\n");
 		//there are 4 more lines than rows in the message for readability
-		assertEquals(venue.getNumRows() + 4, rowArray.length);
+		assertEquals(venue.getRows().size() + 4, rowArray.length);
 		
 		//when venue is too large to be printed, display an error
-		Venue largeVenue = new Venue(2, 100, 100, 40);
-		String largeVenueMap = largeVenue.printVenue();
+		venueRows = 100;
+		venueSeatsPerRow = 100;
+		createVenue();
+		
+		String largeVenueMap = venue.printVenue();
 		assertEquals(Venue.SEAT_MAP_PRINT_ERROR_MSG, largeVenueMap);
 		
 	}

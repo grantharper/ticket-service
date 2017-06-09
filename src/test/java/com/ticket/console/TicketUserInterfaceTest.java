@@ -9,8 +9,10 @@ import org.beryx.textio.EnumInputReader;
 import org.beryx.textio.IntInputReader;
 import org.beryx.textio.StringInputReader;
 import org.beryx.textio.TextIO;
+import org.beryx.textio.TextIoFactory;
 import org.beryx.textio.mock.MockTextTerminal;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class TicketUserInterfaceTest {
@@ -102,11 +104,12 @@ public class TicketUserInterfaceTest {
 		assertEquals(2, terminal.getReadCalls());
 	}
 	
+	@Ignore
 	@Test
 	public void testBasicFlow() {
-		//TextIO textIO = TextIoFactory.getTextIO();
+		TextIO textIO = TextIoFactory.getTextIO();
 		
-		BiConsumer<TextIO, String> app = new TicketUserInterface(textIO);
+		TicketUserInterface app = new TicketUserInterface(textIO);
 		List<String> inputs = terminal.getInputs();
 		String outputs = terminal.getOutput();
 		//login
@@ -124,7 +127,7 @@ public class TicketUserInterfaceTest {
 		//quit
 		inputs.add("q");
 		//accept all of the user input
-		app.accept(textIO, null);
+		app.run();
 		
 	}
 

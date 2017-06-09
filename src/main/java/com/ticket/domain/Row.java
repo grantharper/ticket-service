@@ -114,7 +114,7 @@ public class Row {
 		// case where we can't start from the middle. Start with whichever side
 		// has the first available seat since this side will have the most seats
 		// available
-		for (int i = 1; i <= seats.size(); i++) {
+		for (int i = 1; i < seats.size(); i++) {
 
 			if (seats.get(i).isAvailable()) {
 				heldSeats = holdRightOrLeftSeats(numSeatsRequested, i, seatHold, seats);

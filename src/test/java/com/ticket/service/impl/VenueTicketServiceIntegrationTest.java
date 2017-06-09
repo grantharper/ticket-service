@@ -3,60 +3,111 @@ package com.ticket.service.impl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.ticket.App;
+import com.ticket.Bootstrap;
+import com.ticket.console.TicketUserInterface;
+import com.ticket.domain.Row;
 import com.ticket.domain.SeatHold;
+import com.ticket.domain.SeatReservation;
 import com.ticket.domain.Venue;
+import com.ticket.repository.RowRepository;
+import com.ticket.repository.SeatHoldRepository;
+import com.ticket.repository.SeatRepository;
+import com.ticket.repository.SeatReservationRepository;
+import com.ticket.repository.VenueRepository;
 import com.ticket.service.VenueTicketService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = App.class)
-public class VenueTicketServiceImplTest {
+public class VenueTicketServiceIntegrationTest {
+	
+	@MockBean
+	private TicketUserInterface ticketUserInterface;
 	
 	@Autowired
 	VenueTicketService venueTicketService;
+	
+	@Autowired
+	Bootstrap bootstrap;
+	
+	@Autowired
+	VenueRepository venueRepository;
+	
+	@Autowired
+	SeatRepository seatRepository;
+	
+	@Autowired
+	SeatHoldRepository seatHoldRepository;
+	
+	@Autowired
+	RowRepository rowRepository;
+	
+	@Autowired
+	SeatReservationRepository seatReservationRepository;
 
 	private String customerEmail = "email@email.com";
 	private Venue venue;
-	private Integer venueRows;
-	private Integer venueSeatsPerRow;
-	private double venueHoldSeconds;
 	private Integer totalVenueSeats;
 	private long holdExpireSleepMillis;
 	
+	@Value("${venue.rows}")
+	private Integer numRows;
+	
+	@Value("${venue.seatsPerRow}")
+	private Integer numSeatsPerRow;
+	
+	@Value("${venue.id}")
+	private Integer venueId;
+	
+	@Value("${venue.seatHoldSeconds}")
+	private Integer seatHoldSeconds;
+	
 	@Before
 	public void setUp(){
-		venueRows = 10;
-		venueSeatsPerRow = 20;
-		venueHoldSeconds = 0.1;
-		totalVenueSeats = venueRows * venueSeatsPerRow;
-		holdExpireSleepMillis = (long) (venueHoldSeconds * 1000) + 100; //100 more milliseconds than the seat hold has
-		venue = new Venue(1);
+
+		venue = venueRepository.findOne(venueId);
+		totalVenueSeats = numRows * numSeatsPerRow;
+		holdExpireSleepMillis = (long) (seatHoldSeconds * 1000) + 100; //100 more milliseconds than the seat hold has
+	}
+	
+	@After
+	public void tearDown(){
+		seatRepository.deleteAll();
+		rowRepository.deleteAll();
+		seatHoldRepository.deleteAll();
+		seatReservationRepository.deleteAll();
+		venueRepository.deleteAll();
+		bootstrap.loadVenue();
 	}
 	
 	@Test
 	public void testNumSeatsAvailable() throws InterruptedException {
 		//initial size of venue
-		assertEquals(totalVenueSeats.intValue(), venue.numSeatsAvailable());
+		assertEquals(totalVenueSeats.intValue(), venueTicketService.numSeatsAvailable());
 		//after a hold
 		int numSeatsRequested = 10;
 		venueTicketService.findAndHoldSeats(numSeatsRequested, customerEmail);
-		assertEquals(totalVenueSeats - numSeatsRequested, venue.numSeatsAvailable());
+		assertEquals(totalVenueSeats - numSeatsRequested, venueTicketService.numSeatsAvailable());
 		//after hold expires
 		Thread.sleep(holdExpireSleepMillis);
-		assertEquals(totalVenueSeats, venue.numSeatsAvailable());
+		assertEquals(totalVenueSeats.intValue(), venueTicketService.numSeatsAvailable());
 		//after a reservation
 		SeatHold seatHold = venueTicketService.findAndHoldSeats(numSeatsRequested, customerEmail);
 		venueTicketService.reserveSeats(seatHold.getSeatHoldId(), customerEmail);
-		assertEquals(totalVenueSeats - numSeatsRequested, venue.numSeatsAvailable());
+		assertEquals(totalVenueSeats - numSeatsRequested, venueTicketService.numSeatsAvailable());
 		
 	}
 
@@ -69,7 +120,7 @@ public class VenueTicketServiceImplTest {
 		for (int i = 1; i <= maxSeatsToHold; i++) {
 			venueTicketService.findAndHoldSeats(i, customerEmail);
 			remainingSeats -= i;
-			assertEquals(remainingSeats, venue.numSeatsAvailable());
+			assertEquals(remainingSeats, venueTicketService.numSeatsAvailable());
 		}
 
 	}
@@ -78,7 +129,7 @@ public class VenueTicketServiceImplTest {
 	public void testLargeFindAndHoldSeats(){
 		int reserveSeats = 84;
 		venueTicketService.findAndHoldSeats(reserveSeats, customerEmail);
-		assertEquals(totalVenueSeats - reserveSeats, venue.numSeatsAvailable());
+		assertEquals(totalVenueSeats - reserveSeats, venueTicketService.numSeatsAvailable());
 		
 	}
 	
@@ -91,15 +142,15 @@ public class VenueTicketServiceImplTest {
 	
 	@Test
 	public void testFindRowEndsAndMaxOut(){
-		int almostCompleteRowReservations = venueSeatsPerRow - 2;
+		int almostCompleteRowReservations = numSeatsPerRow - 2;
 		
-		for(int i = 0; i < venueRows; i++){
+		for(int i = 0; i < numRows; i++){
 			venueTicketService.findAndHoldSeats(almostCompleteRowReservations, customerEmail);
 		}
-		assertEquals(totalVenueSeats - almostCompleteRowReservations * venueRows, venue.numSeatsAvailable());
+		assertEquals(totalVenueSeats - almostCompleteRowReservations * numRows, venueTicketService.numSeatsAvailable());
 		//after the venue is almost completely full request the remaining seats in one big request
-		venueTicketService.findAndHoldSeats(totalVenueSeats - almostCompleteRowReservations * venueRows, customerEmail);
-		assertEquals(0, venue.numSeatsAvailable());
+		venueTicketService.findAndHoldSeats(totalVenueSeats - almostCompleteRowReservations * numRows, customerEmail);
+		assertEquals(0, venueTicketService.numSeatsAvailable());
 		
 	}
 	
@@ -110,7 +161,7 @@ public class VenueTicketServiceImplTest {
 		for(int i = 0; i < totalVenueSeats / 2; i++){
 			venueTicketService.findAndHoldSeats(reserveSeats, customerEmail);
 		}
-		assertEquals(totalVenueSeats % reserveSeats, venue.numSeatsAvailable());
+		assertEquals(totalVenueSeats % reserveSeats, venueTicketService.numSeatsAvailable());
 		assertNull(venueTicketService.findAndHoldSeats(1, customerEmail));
 		
 	}
@@ -121,50 +172,41 @@ public class VenueTicketServiceImplTest {
 		for(int i = 0; i < totalVenueSeats / reserveSeats; i++){
 			venueTicketService.findAndHoldSeats(reserveSeats, customerEmail);
 		}
-		assertEquals(totalVenueSeats % reserveSeats, venue.numSeatsAvailable());
+		assertEquals(totalVenueSeats % reserveSeats, venueTicketService.numSeatsAvailable());
 	}
 	
 	@Test
 	public void testRequestMoreSeatsThanRowSize(){
-		int reserveSeats = venueSeatsPerRow + 1;
+		int reserveSeats = numSeatsPerRow + 1;
 		venueTicketService.findAndHoldSeats(reserveSeats, customerEmail);
-		assertEquals(totalVenueSeats - reserveSeats, venue.numSeatsAvailable());
+		assertEquals(totalVenueSeats - reserveSeats, venueTicketService.numSeatsAvailable());
 		//there should be 0 seats left in the first row
-		assertEquals(0, venue.getRows().get(1).numSeatsAvailable());
+		venue = venueRepository.findOne(venueId);
+		List<Row> rowList = new ArrayList<>(venue.getRows());
+		assertEquals(0, rowList.get(0).numSeatsAvailable());
 		//there should be only 1 seat taken in the second row
-		assertEquals(venueSeatsPerRow - 1, venue.getRows().get(2).numSeatsAvailable());
+		assertEquals(numSeatsPerRow - 1, rowList.get(1).numSeatsAvailable());
 	}
 	
 	@Test
 	public void testTimedSeatHolds() throws InterruptedException{
 		int reserveSeats = 5;
 		venueTicketService.findAndHoldSeats(reserveSeats, customerEmail);
-		assertEquals(totalVenueSeats - reserveSeats, venue.numSeatsAvailable());
+		assertEquals(totalVenueSeats - reserveSeats, venueTicketService.numSeatsAvailable());
 		Thread.sleep(holdExpireSleepMillis);
 		//after hold expiration, all seats should be available
-		assertEquals(totalVenueSeats, venue.numSeatsAvailable());
+		assertEquals(totalVenueSeats.intValue(), venueTicketService.numSeatsAvailable());
 	}
-	
-	
-//	@Test
-//	public void testDivideGroups(){
-//		int numSeatsRequested = 47;
-//		List<Integer> seatRequests = venueTicketService.divideSeatRequestsIntoCompleteRows(numSeatsRequested, venue);
-//		//47 would be divided into 2 groups of 20 (row size) and 1 group of 7
-//		assertEquals(3, seatRequests.size());
-//		assertEquals(20, seatRequests.get(0).intValue());
-//		assertEquals(7, seatRequests.get(2).intValue());
-//				
-//	}
 	
 	@Test
 	public void testReserveSeats(){
 		int reserveSeats = 2;
 		SeatHold seatHold = venueTicketService.findAndHoldSeats(reserveSeats, customerEmail);
 		String confirmationCode = venueTicketService.reserveSeats(seatHold.getSeatHoldId(), customerEmail);
-		//TODO: use the repository to create a custom query to look up by confirmation code
-		assertEquals(venue.getSeatReservations().get(confirmationCode).getCustomerEmail(), customerEmail);
-		assertEquals(venue.getSeatReservations().get(confirmationCode).getReservedSeats().size(), reserveSeats);
+		
+		SeatReservation reservation = seatReservationRepository.getReservationByConfirmationId(confirmationCode);
+		assertEquals(reservation.getCustomerEmail(), customerEmail);
+		assertEquals(reservation.getReservedSeats().size(), reserveSeats);
 	}
 	
 	@Test
@@ -181,12 +223,12 @@ public class VenueTicketServiceImplTest {
 		String venueMap = venueTicketService.printVenue(venueId);
 		String rowArray[] = venueMap.split("\n");
 		//there are 4 more lines than rows in the message for readability
-		assertEquals(venue.getNumRows() + 4, rowArray.length);
+		assertEquals(venue.getRows().size() + 4, rowArray.length);
 		
 		//when venue is too large to be printed, display an error
-		Venue largeVenue = new Venue(2, 100, 100, 40);
-		String largeVenueMap = largeVenue.printVenue();
-		assertEquals(Venue.SEAT_MAP_PRINT_ERROR_MSG, largeVenueMap);
+//		Venue largeVenue = new Venue(2, 100, 100, 40);
+//		String largeVenueMap = largeVenue.printVenue();
+//		assertEquals(Venue.SEAT_MAP_PRINT_ERROR_MSG, largeVenueMap);
 		
 	}
 

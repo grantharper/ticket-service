@@ -11,7 +11,7 @@ public class SeatReservationTest {
 	@Test
 	public void testNextAvailableId() {
 		String id = SeatReservation.getNextConfirmationId();
-		SeatReservation seatReservation = new SeatReservation("", new ArrayList<>());
+		SeatReservation seatReservation = new SeatReservation("email@email.com");
 		assertEquals(id, seatReservation.getConfirmationId());
 	}
 

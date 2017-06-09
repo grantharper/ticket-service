@@ -45,7 +45,7 @@ public class SeatTest {
 	
 	@Test
 	public void testReservation(){
-		seat.reserveSeat(customerEmail);
+		seat.reserveSeat(new SeatReservation());
 		assertTrue(seat.isReserved());
 		assertFalse(seat.isAvailable());
 	}
@@ -55,7 +55,7 @@ public class SeatTest {
 		assertEquals(Seat.SEAT_AVAILABLE_CODE, seat.print());
 		seat.placeHold(seatHold);
 		assertEquals(Seat.SEAT_HELD_CODE, seat.print());
-		seat.reserveSeat(customerEmail);
+		seat.reserveSeat(new SeatReservation());
 		assertEquals(Seat.SEAT_RESERVED_CODE, seat.print());
 	}
 

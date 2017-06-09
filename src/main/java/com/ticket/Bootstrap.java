@@ -29,15 +29,27 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
 	@Resource
 	private SeatRepository seatRepository;
 	
+	/**
+	 * the number of rows defined in the property file
+	 */
 	@Value("${venue.rows}")
 	private Integer numRows;
 	
+	/**
+	 * the number of seats per row defined in the property file
+	 */
 	@Value("${venue.seatsPerRow}")
 	private Integer numSeatsPerRow;
 	
+	/**
+	 * the venue id define in the property file
+	 */
 	@Value("${venue.id}")
 	private Integer venueId;
 
+	/**
+	 * method to load the venue to the database when the application context starts up 
+	 */
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		LOGGER.info("Loading venue");
@@ -45,8 +57,10 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
 
 	}
 	
-	private void loadVenue(){
-		
+	/**
+	 * method to load the venue specified in the property file into the database
+	 */
+	public void loadVenue(){
 		Venue venue = new Venue(venueId);
 		venueRepository.save(venue);
 		

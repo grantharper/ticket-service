@@ -36,17 +36,6 @@ public class Seat {
 	 */
 	@ManyToOne
 	private SeatHold seatHold;
-
-	/**
-	 * true if a final reservation has been placed false if the seat has not
-	 * been reserved
-	 */
-	private boolean reserved;
-
-	/**
-	 * email of the customer who reserved the seats
-	 */
-	private String customerReservationEmail;
 	
 	/**
 	 * seat reservation for the seat object
@@ -140,12 +129,11 @@ public class Seat {
 	}
 
 	/**
-	 * reserves the seat for the customer email passed in
-	 * @param customerEmail email of the customer
+	 * reserves the seat
+	 * @param seatReservation the reservation on the seat
 	 */
-	public void reserveSeat(String customerEmail) {
-		this.reserved = true;
-		this.customerReservationEmail = customerEmail;
+	public void reserveSeat(SeatReservation seatReservation) {
+		this.seatReservation = seatReservation;
 	}
 
 	/**
@@ -180,29 +168,25 @@ public class Seat {
 	 * @return the reserved
 	 */
 	public boolean isReserved() {
-		return reserved;
+		if(seatReservation != null){
+			return true;
+		}
+		return false;
 	}
 
-	/**
-	 * @param reserved the reserved to set
-	 */
-	public void setReserved(boolean reserved) {
-		this.reserved = reserved;
-	}
-
-	/**
-	 * @return the customerReservationEmail
-	 */
-	public String getCustomerReservationEmail() {
-		return customerReservationEmail;
-	}
-
-	/**
-	 * @param customerReservationEmail the customerReservationEmail to set
-	 */
-	public void setCustomerReservationEmail(String customerReservationEmail) {
-		this.customerReservationEmail = customerReservationEmail;
-	}
+//	/**
+//	 * @return the customerReservationEmail
+//	 */
+//	public String getCustomerReservationEmail() {
+//		return customerReservationEmail;
+//	}
+//
+//	/**
+//	 * @param customerReservationEmail the customerReservationEmail to set
+//	 */
+//	public void setCustomerReservationEmail(String customerReservationEmail) {
+//		this.customerReservationEmail = customerReservationEmail;
+//	}
 
 	/**
 	 * @return the row
@@ -255,8 +239,8 @@ public class Seat {
 	 */
 	@Override
 	public String toString() {
-		return "Seat [seatId=" + seatId + ", seatHold=" + seatHold + ", reserved=" + reserved
-				+ ", customerReservationEmail=" + customerReservationEmail + ", row=" + row + "]";
+		return "Seat [seatId=" + seatId + ", seatNumber=" + seatNumber + ", seatHold=" + seatHold + ", seatReservation="
+				+ seatReservation + ", row=" + row + "]";
 	}
 
 	
