@@ -28,5 +28,6 @@ This is an application designed to allow users to discover, temporarily hold, an
 - `mvn exec:java`
 
 ### Proposed next steps
-- Establish persistance
+- Move from an in-memory to a disk-based storage database for persistence beyond life of the application
+- Expand application beyond one sample venue
 - Create web interface
