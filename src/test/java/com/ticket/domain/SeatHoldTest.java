@@ -1,9 +1,12 @@
 package com.ticket.domain;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -13,10 +16,14 @@ public class SeatHoldTest {
 	private String customerEmail ;
 	private SeatHold seatHold;
 	private Venue venue;
+	private long setExpireNanos;
+	private long holdExpireSleepMillis;
 
 	@Before
 	public void setUp(){
-		venue = new Venue(1, 10, 10, 0.001);
+		venue = new Venue(1);
+		setExpireNanos = 100 * 1_000_000;
+		holdExpireSleepMillis = 200;
 		customerEmail = "email@email.com";
 		seatHold = new SeatHold(customerEmail, venue);
 	}
@@ -24,30 +31,30 @@ public class SeatHoldTest {
 	@Test
 	public void testSeatHoldIsHolding() throws InterruptedException{
 		assertTrue(seatHold.isHolding());
-		seatHold.commitSeatHold(new ArrayList<Seat>());
+		seatHold.commitSeatHold(LocalDateTime.now().plusNanos(setExpireNanos));
 		assertTrue(seatHold.isHolding());
-		Thread.sleep(2);
+		Thread.sleep(holdExpireSleepMillis);
 		assertFalse(seatHold.isHolding());
-		assertTrue(seatHold.isNotValid());
 		
 	}
 	
 	@Test
 	public void testSeatHoldCommit(){
-		assertNull(seatHold.getHoldExpiration());
-		seatHold.commitSeatHold(new ArrayList<>());
-		assertNotNull(seatHold.getHoldExpiration());
+		assertNull(seatHold.getExpireTime());
+		LocalDateTime expireTime = LocalDateTime.now().plusNanos(setExpireNanos);
+		seatHold.commitSeatHold(expireTime);
+		assertNotNull(seatHold.getExpireTime());
+		assertEquals(seatHold.getExpireTime(), expireTime);
 	}
 
 	@Test
 	public void testSeatHoldPrintSecondsToExpire(){
-		seatHold.commitSeatHold(new ArrayList<Seat>());
+		LocalDateTime expireTime = LocalDateTime.now().plusNanos(setExpireNanos);
+		seatHold.commitSeatHold(expireTime);
 		assertEquals("0 seconds", seatHold.printSecondsToExpiration());
-		
-		Venue venue2 = new Venue(1, 10, 10, 2.9);
-		SeatHold seatHold2 = new SeatHold(customerEmail, venue2);
-		seatHold2.commitSeatHold(new ArrayList<Seat>());
-		assertEquals("2 seconds", seatHold2.printSecondsToExpiration());
+		LocalDateTime expireTime2 = LocalDateTime.now().plusNanos(21 * 100000000);
+		seatHold.commitSeatHold(expireTime2);
+		assertEquals("2 seconds", seatHold.printSecondsToExpiration());
 		
 	}
 	
@@ -60,7 +67,8 @@ public class SeatHoldTest {
 	
 	@Test
 	public void invalidateCommittedSeatHold(){
-		seatHold.commitSeatHold(new ArrayList<>());
+		LocalDateTime expireTime = LocalDateTime.now().plusNanos(setExpireNanos);
+		seatHold.commitSeatHold(expireTime);
 		assertTrue(seatHold.isHolding());
 		seatHold.invalidate();
 		assertFalse(seatHold.isHolding());

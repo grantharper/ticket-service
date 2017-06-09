@@ -28,7 +28,7 @@ public class SeatHold {
 	 */
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)
-	private Long seatHoldId;
+	private Integer seatHoldId;
 	
 	/**
 	 * the list of seats that are held by the seat hold
@@ -39,7 +39,7 @@ public class SeatHold {
 	/**
 	 * the email of the customer who owns the seat hold
 	 */
-	private final String customerEmail;
+	private String customerEmail;
 	
 	/**
 	 * the time when the seat hold will expire
@@ -69,6 +69,8 @@ public class SeatHold {
 		this.inProgress = true;
 	}
 	
+	public SeatHold(){}
+	
 	/**
 	 * commits the seat hold and establishes the time when it will expire
 	 * @param seatsHeld the seats held
@@ -93,8 +95,6 @@ public class SeatHold {
 		}
 	}
 
-	
-	// TODO Move this out of this method
 	/**
 	 * @return whether the seat hold is currently holding the seats
 	 */
@@ -137,7 +137,21 @@ public class SeatHold {
 		return customerEmail;
 	}
 
+	/**
+	 * @return the seatHoldId
+	 */
+	public Integer getSeatHoldId() {
+		return seatHoldId;
+	}
 
+	/**
+	 * @return the expireTime
+	 */
+	public LocalDateTime getExpireTime() {
+		return expireTime;
+	}
+
+	
 
 
 }

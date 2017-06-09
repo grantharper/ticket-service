@@ -28,12 +28,12 @@ public class Row {
 	 */
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long rowId;
+	private Integer rowId;
 	
 	/**
 	 * the user-friendly row number in a given venue
 	 */
-	private Long rowNumber;
+	private Integer rowNumber;
 
 	/**
 	 * list of all the seats in the row
@@ -60,13 +60,9 @@ public class Row {
 	 * @param rowId
 	 *            the unique identifier for the row
 	 */
-	public Row(final Long rowNumber, final Long numSeats, Venue venue) {
+	public Row(Integer rowNumber, Venue venue) {
 		this.rowNumber = rowNumber;
 		this.venue = venue;
-		//can I do an autowired seatRepository here and create all the seats to save them? Probs not.
-		for (Long i = 1L; i <= numSeats; i++) {
-			this.seats.add(new Seat(i, this));
-		}
 	}
 
 	/**
@@ -93,7 +89,7 @@ public class Row {
 	 *            the number of seats to be held
 	 * @return list of seats that have been held. If unsuccessful, returns null
 	 */
-	List<Seat> holdSeats(int numSeatsRequested, SeatHold seatHold) {
+	public List<Seat> holdSeats(int numSeatsRequested, SeatHold seatHold) {
 		// initialize with the number requested to avoid having to recreate it
 		// internally
 		List<Seat> heldSeats = new ArrayList<>(numSeatsRequested);
@@ -194,28 +190,28 @@ public class Row {
 	/**
 	 * @return the rowId
 	 */
-	public Long getRowId() {
+	public Integer getRowId() {
 		return rowId;
 	}
 
 	/**
 	 * @param rowId the rowId to set
 	 */
-	public void setRowId(Long rowId) {
+	public void setRowId(Integer rowId) {
 		this.rowId = rowId;
 	}
 
 	/**
 	 * @return the rowNumber
 	 */
-	public Long getRowNumber() {
+	public Integer getRowNumber() {
 		return rowNumber;
 	}
 
 	/**
 	 * @param rowNumber the rowNumber to set
 	 */
-	public void setRowNumber(Long rowNumber) {
+	public void setRowNumber(Integer rowNumber) {
 		this.rowNumber = rowNumber;
 	}
 

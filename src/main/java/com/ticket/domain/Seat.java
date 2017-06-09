@@ -23,13 +23,13 @@ public class Seat {
 	 */
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)
-	private Long seatId;
+	private Integer seatId;
 	
 	
 	/**
 	 * the user-friendly seat number in the row
 	 */
-	private Long seatNumber;
+	private Integer seatNumber;
 	
 	/**
 	 * the seat hold associated with this seat
@@ -49,10 +49,18 @@ public class Seat {
 	private String customerReservationEmail;
 	
 	/**
+	 * seat reservation for the seat object
+	 */
+	@ManyToOne
+	private SeatReservation seatReservation;
+	
+	/**
 	 * row where the seat is located
 	 */
 	@ManyToOne
 	private Row row;
+	
+	protected Seat(){}
 	
 	/**
 	 * Instantiation of the seat
@@ -62,7 +70,7 @@ public class Seat {
 	 * @param seatNum
 	 *            the number of the seat
 	 */
-	public Seat(final Long seatNum, Row row) {
+	public Seat(Integer seatNum, Row row) {
 		this.seatNumber = seatNum;
 		this.row = row;
 	}
@@ -143,14 +151,14 @@ public class Seat {
 	/**
 	 * @return the seatId
 	 */
-	public Long getSeatId() {
+	public Integer getSeatId() {
 		return seatId;
 	}
 
 	/**
 	 * @param seatId the seatId to set
 	 */
-	public void setSeatId(Long seatId) {
+	public void setSeatId(Integer seatId) {
 		this.seatId = seatId;
 	}
 
@@ -215,15 +223,31 @@ public class Seat {
 	/**
 	 * @return the seatNumber
 	 */
-	public Long getSeatNumber() {
+	public Integer getSeatNumber() {
 		return seatNumber;
 	}
 
 	/**
 	 * @param seatNumber the seatNumber to set
 	 */
-	public void setSeatNumber(Long seatNumber) {
+	public void setSeatNumber(Integer seatNumber) {
 		this.seatNumber = seatNumber;
+	}
+	
+	
+
+	/**
+	 * @return the seatReservation
+	 */
+	public SeatReservation getSeatReservation() {
+		return seatReservation;
+	}
+
+	/**
+	 * @param seatReservation the seatReservation to set
+	 */
+	public void setSeatReservation(SeatReservation seatReservation) {
+		this.seatReservation = seatReservation;
 	}
 
 	/* (non-Javadoc)

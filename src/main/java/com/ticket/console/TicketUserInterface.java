@@ -11,9 +11,11 @@ import org.beryx.textio.TextIO;
 import org.beryx.textio.TextTerminal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import com.ticket.domain.SeatHold;
-import com.ticket.domain.Venue;
 import com.ticket.service.VenueTicketService;
 import com.util.AppProperties;
 
@@ -22,6 +24,7 @@ import com.util.AppProperties;
  * the user interacts with the ticket service The user will see a series of
  * console prompts
  */
+@Component
 public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	public static final Logger LOGGER = LoggerFactory.getLogger(TicketUserInterface.class);
 	
@@ -56,14 +59,10 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	private EnumInputReader<YesNo> confirmationReader;
 	
 	/**
-	 * properties object to allow the user interface to access the property file information
-	 */
-	private Map<String, String> appProperties = new AppProperties().getProperties();
-	
-	/**
 	 * the venue that the user will interact with
 	 */
-	private VenueTicketService venue;
+	@Autowired
+	private VenueTicketService venueTicketService;
 	
 	/**
 	 * the terminal object used to issue prompts and read user input
@@ -78,7 +77,11 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	/**
 	 * flag indicating whether the venue map should be displayed to the user
 	 */
+	@Value("${venue.displayMap}")
 	private boolean displayVenueMap;
+	
+	@Value("${venue.id}")
+	private Integer venueId;
 	
 	/**
 	 * instantiates the readers used by the terminal to interpret user input
@@ -91,36 +94,6 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 		this.confirmationReader = textIO.newEnumInputReader(YesNo.class);
 		this.terminal = textIO.getTextTerminal();
 		this.props = terminal.getProperties();
-		loadVenue();
-	}
-	
-	/**
-	 * constants for property file retrieval
-	 */
-	public static final String VENUE_ID_PROPERTY_KEY = "venue.id";
-	public static final String VENUE_ROWS_PROPERTY_KEY = "venue.rows";
-	public static final String VENUE_SEATS_PER_ROW_PROPERTY_KEY = "venue.seatsPerRow";
-	public static final String VENUE_SEAT_HOLD_SECONDS_PROPERTY_KEY = "venue.seatHoldSeconds";
-	public static final String VENUE_DISPLAY_MAP_PROPERTY_KEY = "venue.displayMap";
-	
-	/**
-	 * helper method to read the property file venue properties and instantiate the venue
-	 */
-	public void loadVenue(){
-		try{
-			LOGGER.info("Retrieving settings from application.properties file");
-			int venueId = Integer.parseInt(appProperties.get(VENUE_ID_PROPERTY_KEY));
-			int venueRows = Integer.parseInt(appProperties.get(VENUE_ROWS_PROPERTY_KEY));
-			int venueSeatsPerRow = Integer.parseInt(appProperties.get(VENUE_SEATS_PER_ROW_PROPERTY_KEY));
-			int venueSeatHoldSeconds = Integer.parseInt(appProperties.get(VENUE_SEAT_HOLD_SECONDS_PROPERTY_KEY));
-			displayVenueMap = Boolean.parseBoolean(appProperties.get(VENUE_DISPLAY_MAP_PROPERTY_KEY));
-			venue = new Venue(venueId, venueRows, venueSeatsPerRow, venueSeatHoldSeconds);
-		} catch(Exception e){
-			LOGGER.error("Invalid properties found. Building simple venue of 10 rows, 20 seats per row, and a hold duration of 60 seconds");
-			venue = new Venue(1, 10, 20, 60);
-			displayVenueMap = true;
-		}
-		
 	}
 
 	/**
@@ -172,7 +145,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 					break;
 				} else if (menu.equals(MainMenu.NUMBER_OF_SEATS_AVAILABLE)) {
 					LOGGER.info("Customer " + customerEmail + " selected Number of Seats Available");
-					int remainingSeats = venue.numSeatsAvailable();
+					int remainingSeats = venueTicketService.numSeatsAvailable();
 					changeToImportantColor();
 					terminal.printf("Remaining Seats: %d \n\n", remainingSeats);
 					resetPromptColor();
@@ -189,7 +162,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 						
 						
 
-						seatHold = venue.findAndHoldSeats(numberOfSeatsRequested, customerEmail);
+						seatHold = venueTicketService.findAndHoldSeats(numberOfSeatsRequested, customerEmail);
 						
 						changeToImportantColor();
 						if(seatHold != null){
@@ -208,7 +181,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 						if (confirmationReader.read("Please confirm your selection: ").booleanValueOf()) {
 							LOGGER.info("Confirming the seat selection");
 							
-							String confirmationNumber = venue.reserveSeats(seatHold.getSeatHoldId(), customerEmail);
+							String confirmationNumber = venueTicketService.reserveSeats(seatHold.getSeatHoldId(), customerEmail);
 							insertWaitTime();
 							changeToImportantColor();
 							if(confirmationNumber != null){
@@ -225,7 +198,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 						//selection of no when asked to confirm hold
 						else{
 							LOGGER.info("Remove seat hold because customer indicated they did not want to reserve the seats");
-							venue.invalidateHold(seatHold);
+							venueTicketService.invalidateHold(seatHold);
 						}
 					}
 					
@@ -254,7 +227,7 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	 */
 	private void printVenueMap(){
 		if(displayVenueMap){
-			String venueMap = venue.printVenue();
+			String venueMap = venueTicketService.printVenue(venueId);
 			LOGGER.debug(venueMap);
 			terminal.print(venueMap);
 		}
@@ -336,21 +309,6 @@ public class TicketUserInterface implements BiConsumer<TextIO, String> {
 	public TerminalProperties getProps() {
 		return props;
 	}
-
-	/**
-	 * @return the venue
-	 */
-	public VenueTicketService getVenue() {
-		return venue;
-	}
-
-	/**
-	 * @return the appProperties
-	 */
-	public Map<String, String> getAppProperties() {
-		return appProperties;
-	}
-	
 	
 
 }

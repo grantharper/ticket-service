@@ -1,5 +1,6 @@
 package com.ticket.domain;
 
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -31,8 +32,7 @@ public class Venue {
 	 * the unique identifier for the venue
 	 */
 	@Id
-	@GeneratedValue(strategy=GenerationType.AUTO)
-	private Long venueId;
+	private Integer venueId;
 
 	/**
 	 * the rows in the venue
@@ -63,28 +63,31 @@ public class Venue {
 	 * 
 	 * @param venueId
 	 *            unique identifier for the venue
-	 * @param numRows
-	 *            number of rows in the venue
-	 * @param numSeatsPerRow
-	 *            number of seats per row in the venue
 	 */
-	public Venue(final Long numRows, final Long numSeatsPerRow) {
-		for (Long i = 0L; i < numRows; i++) {
-			this.rows.add(new Row(i + 1, numSeatsPerRow, this));
+	public Venue(Integer venueId) {
+		this.venueId = venueId;
+	}
+	
+	public int numSeatsAvailable() {
+		Iterator<Row> it = this.getRows().iterator();
+		int seatsAvailableInVenue = 0;
+		while (it.hasNext()) {
+			seatsAvailableInVenue += it.next().numSeatsAvailable();
 		}
+		return seatsAvailableInVenue;
 	}
 
 	/**
 	 * @return the venueId
 	 */
-	public Long getVenueId() {
+	public Integer getVenueId() {
 		return venueId;
 	}
 
 	/**
 	 * @param venueId the venueId to set
 	 */
-	public void setVenueId(Long venueId) {
+	public void setVenueId(Integer venueId) {
 		this.venueId = venueId;
 	}
 
@@ -116,6 +119,14 @@ public class Venue {
 		this.seatHolds = seatHolds;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Venue [venueId=" + venueId + ", rows=" + rows + ", seatHolds=" + seatHolds + "]";
+	}
+
 	/**
 	 * @return the seatReservations
 	 */
@@ -130,15 +141,7 @@ public class Venue {
 		this.seatReservations = seatReservations;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "Venue [venueId=" + venueId + ", rows=" + rows + ", seatHolds=" + seatHolds + ", seatReservations="
-				+ seatReservations + "]";
-	}
-
+	
 	
 	
 	

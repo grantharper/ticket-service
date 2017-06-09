@@ -26,10 +26,9 @@ public class SeatTest {
 	@Before
 	public void setUp() {
 		seatHoldSeconds = 0.1;
-		venue = new Venue(1, 10, 10, seatHoldSeconds);
-		row = new Row(1, 10, venue);
-		holdExpireSleepMillis = venue.getHoldDuration().toMillis() + 100;
-		seat = new Seat(1, venue, row);
+		venue = new Venue(1);
+		row = new Row(1, venue);
+		seat = new Seat(1, row);
 		seatHold = new SeatHold(customerEmail, venue);
 	}
 
@@ -41,10 +40,6 @@ public class SeatTest {
 		seat.placeHold(seatHold);
 		assertTrue(seat.isHeld());
 		assertFalse(seat.isAvailable());
-		seatHold.commitSeatHold(new ArrayList<Seat>());
-		Thread.sleep(holdExpireSleepMillis);
-		assertFalse(seat.isHeld());
-		assertTrue(seat.isAvailable());
 
 	}
 	

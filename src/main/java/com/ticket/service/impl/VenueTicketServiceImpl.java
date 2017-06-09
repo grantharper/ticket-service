@@ -1,48 +1,52 @@
 package com.ticket.service.impl;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import com.ticket.domain.Row;
 import com.ticket.domain.Seat;
 import com.ticket.domain.SeatHold;
 import com.ticket.domain.SeatReservation;
 import com.ticket.domain.Venue;
+import com.ticket.repository.SeatHoldRepository;
+import com.ticket.repository.SeatRepository;
+import com.ticket.repository.SeatReservationRepository;
+import com.ticket.repository.VenueRepository;
 import com.ticket.service.VenueTicketService;
 
+@Service
 public class VenueTicketServiceImpl implements VenueTicketService{
 	
 	public static final Logger LOGGER = LoggerFactory.getLogger(VenueTicketService.class);
 	
-	private Venue venue;
+	@Autowired
+	private VenueRepository venueRepository;
 	
-	private Duration holdDuration;
+	@Autowired
+	private SeatHoldRepository seatHoldRepository;
 	
-	public VenueTicketServiceImpl(final double seatHoldSeconds, final Long numSeatsPerRow, final Long numRows){
-		this.numSeatsPerRow = numSeatsPerRow;
-		this.numRows = numRows;
-		this.holdDuration = Duration.of(Math.round(seatHoldSeconds * 1000), ChronoUnit.MILLIS);
-		this.venue = new Venue(numRows, numSeatsPerRow);
+	@Autowired
+	private SeatRepository seatRepository;
+	
+	@Autowired
+	private SeatReservationRepository seatReservationRepository;
+	
+	@Value("${venue.seatHoldSeconds}")
+	private Integer seatHoldSeconds;
+	
+	@Value("${venue.id}")
+	private Integer venueId;
+	
+	public VenueTicketServiceImpl(){
 	}
-	
-	//TODO: take these out since the DB should be queried for this info
-	
-	/**
-	 * number of rows in the venue
-	 */
-	private final Long numRows;
-	
-	/**
-	 * number of seats per row in the venue
-	 */
-	private final Long numSeatsPerRow;
 	
 	/**
 	 * see TicketService for method summary
@@ -50,13 +54,8 @@ public class VenueTicketServiceImpl implements VenueTicketService{
 	@Override
 	public int numSeatsAvailable() {
 		LOGGER.info("Retrieving number of available seats in the venue");
-		Iterator<Row> it = venue.getRows().iterator();
-		int seatsAvailableInVenue = 0;
-		while (it.hasNext()) {
-			seatsAvailableInVenue += it.next().numSeatsAvailable();
-		}
-		return seatsAvailableInVenue;
-
+		Venue venue = venueRepository.findOne(venueId);
+		return venue.numSeatsAvailable();
 	}
 
 	/**
@@ -65,6 +64,7 @@ public class VenueTicketServiceImpl implements VenueTicketService{
 	@Override
 	public SeatHold findAndHoldSeats(int numSeatsRequested, String customerEmail) {
 		LOGGER.info("Attempting to find and hold " + numSeatsRequested + " seats in the venue");
+		Venue venue = venueRepository.findOne(venueId);
 		
 		// case where there aren't enough remaining seats
 		if (numSeatsRequested > numSeatsAvailable()) {
@@ -72,16 +72,16 @@ public class VenueTicketServiceImpl implements VenueTicketService{
 			return null;
 		}
 
-		SeatHold seatHold = new SeatHold(customerEmail, this);
+		SeatHold seatHold = new SeatHold(customerEmail, venue);
 		// go through each row and get the List of seats that are held
 		List<Seat> heldSeats = new ArrayList<>(numSeatsRequested);
 		List<Integer> seatRequests = new ArrayList<>();
 		
 		//case where the number of seats requested is larger than the size of a complete row
 		//divide the request in groups of complete rows 
-		if(numSeatsRequested > venue.getNumSeatsPerRow()){
+		if(numSeatsRequested > getNumberOfSeatsPerRow(venue)){
 			LOGGER.debug("Request is larger than the number of seats per row");
-			seatRequests = divideSeatRequestsIntoCompleteRows(numSeatsRequested);
+			seatRequests = divideSeatRequestsIntoCompleteRows(numSeatsRequested, venue);
 		}
 		//case where the number of seats requested is smaller than the size of a complete row
 		else{
@@ -94,7 +94,7 @@ public class VenueTicketServiceImpl implements VenueTicketService{
 
 			//loop through each divided up request and hold available seats
 			for (int i = 0; i < seatRequests.size(); i++ ) {
-				List<Seat> temp = holdSeats(seatRequests.get(i), seatHold);
+				List<Seat> temp = holdSeats(seatRequests.get(i), seatHold, venue);
 				if (!temp.isEmpty()) {
 					//if seats were held, add them to the heldSeats list
 					heldSeats.addAll(temp);
@@ -133,12 +133,25 @@ public class VenueTicketServiceImpl implements VenueTicketService{
 		}
 
 		// populate the SeatHold with the list of seats and customer info and
-		seatHold.commitSeatHold(heldSeats);
+		seatHold.commitSeatHold(LocalDateTime.now().plusSeconds(seatHoldSeconds));
+		seatHoldRepository.save(seatHold);
 		// add it to the list of venue seat holds
-		this.seatHolds.put(seatHold.getSeatHoldId(), seatHold);
+		for(Seat seat: heldSeats){
+			seat.setSeatHold(seatHold);
+			seatRepository.save(seat);
+		}
 		// return the seat hold
 		return seatHold;
 
+	}
+	
+	/**
+	 * method to determine the number of seats per row in a venue. This assumes a rectangular shaped venue with even rows
+	 * @param venue
+	 * @return
+	 */
+	private int getNumberOfSeatsPerRow(Venue venue){
+		return venue.getRows().iterator().next().getSeats().size();
 	}
 
 	/**
@@ -148,12 +161,12 @@ public class VenueTicketServiceImpl implements VenueTicketService{
 	 * @param seatsRequested
 	 * @return held seats
 	 */
-	private List<Seat> holdSeats(int seatsRequested, SeatHold seatHold) {
+	private List<Seat> holdSeats(int seatsRequested, SeatHold seatHold, Venue venue) {
 		List<Seat> heldSeats = new ArrayList<>(seatsRequested);
-		Iterator<Entry<Integer, Row>> it = rows.entrySet().iterator();
+		Iterator<Row> it = venue.getRows().iterator();
 
 		while (it.hasNext() && heldSeats.isEmpty()) {
-			Row currentRow = it.next().getValue();
+			Row currentRow = it.next();
 			heldSeats = currentRow.holdSeats(seatsRequested, seatHold);
 		}
 		return heldSeats;
@@ -164,13 +177,13 @@ public class VenueTicketServiceImpl implements VenueTicketService{
 	 * @param numSeatsRequested
 	 * @return list of groupings of seats to be held
 	 */
-	public List<Integer> divideSeatRequestsIntoCompleteRows(int numSeatsRequested){
-		int numberOfCompleteRows = numSeatsRequested / this.numSeatsPerRow;
-		int remainder = numSeatsRequested % this.numSeatsPerRow;
+	List<Integer> divideSeatRequestsIntoCompleteRows(int numSeatsRequested, Venue venue){
+		int numberOfCompleteRows = numSeatsRequested / getNumberOfSeatsPerRow(venue);
+		int remainder = numSeatsRequested % getNumberOfSeatsPerRow(venue);
 		
 		List<Integer> seatRequests = new ArrayList<>(numberOfCompleteRows + 1);
 		for(int i = 0; i < numberOfCompleteRows; i++){
-			seatRequests.add(this.numSeatsPerRow);
+			seatRequests.add(getNumberOfSeatsPerRow(venue));
 		}
 		if(remainder > 0){
 			seatRequests.add(remainder);
@@ -183,23 +196,23 @@ public class VenueTicketServiceImpl implements VenueTicketService{
 	 */
 	@Override
 	public String reserveSeats(int seatHoldId, String customerEmail) {
-
-		// retrieve the seat hold by id
-		SeatHold seatHold = seatHolds.get(seatHoldId);
+		SeatHold seatHold = seatHoldRepository.findOne(seatHoldId);
 		
 		//determine if the seatHold is no longer valid
-		if(seatHold.isNotValid()){
+		if(!seatHold.isHolding()){
 			return null;
 		}
+		SeatReservation reservation = new SeatReservation(customerEmail, seatHold.getSeatsHeld());
+		seatReservationRepository.save(reservation);
 		
 		// reserve the seats based on the seat hold
 		for (Seat seat : seatHold.getSeatsHeld()) {
 			seat.reserveSeat(customerEmail);
+			seatRepository.save(seat);
 		}
 		// return confirmation Id and populate it in a list for later retrieval
 		// if necessary
-		SeatReservation reservation = new SeatReservation(customerEmail, seatHold.getSeatsHeld());
-		seatReservations.put(reservation.getConfirmationId(), reservation);
+		
 		return reservation.getConfirmationId();
 	}
 	
@@ -220,15 +233,16 @@ public class VenueTicketServiceImpl implements VenueTicketService{
 	 * prints a visual representation of the venue's rows and seats as well as their state
 	 * A = available, H = held, R = reserved
 	 */
-	public String printVenue() {
+	public String printVenue(Integer venueId) {
+		Venue venue = venueRepository.findOne(venueId);
 		//decide whether to print it to the console based on the size of the venue
-		if(this.numRows > 40 || this.numSeatsPerRow > 40){
+		if(venue.getRows().size() > 40 || getNumberOfSeatsPerRow(venue) > 40){
 			return SEAT_MAP_PRINT_ERROR_MSG;
 		}
-		Iterator<Entry<Integer, Row>> it = rows.entrySet().iterator();
+		Iterator<Row> it = venue.getRows().iterator();
 		String venueModel = "";
 		while (it.hasNext()) {
-			venueModel += it.next().getValue().print() + "\n";
+			venueModel += it.next().print() + "\n";
 		}
 		venueModel = "VENUE SEAT MAP \n\nA = Available, H = Held, R = Reserved \n\n" + venueModel + "\n\n";
 		return venueModel;
